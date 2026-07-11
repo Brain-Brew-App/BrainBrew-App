@@ -1,0 +1,69 @@
+/* BrainBrew Admin design tokens — navy foundation, cream text, mint/violet
+   accents, gold sparingly. Dense operational layout, desktop-first, tablet-usable. */
+:root {
+  --navy: #0B1020;
+  --surface: #131B33;
+  --surface-raised: #1B2444;
+  --floating: #232E55;
+  --border: #2A3557;
+  --border-hi: #3A4879;
+  --text: #F5EEE1;
+  --text-muted: #98A2BF;
+  --text-faint: #6B7699;
+  --mint: #5EE7C3;
+  --violet: #A78BFA;
+  --gold: #E8B44A;
+  --danger: #F2748C;
+  --ok: #5EE7C3;
+  --warn: #E8B44A;
+  --radius: 12px;
+  --shadow: 0 8px 18px rgba(2, 5, 14, 0.38);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--navy);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+a { color: var(--mint); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 22px; letter-spacing: -0.3px; margin: 0 0 4px; }
+h2 { font-size: 16px; margin: 0 0 8px; }
+.muted { color: var(--text-muted); }
+.faint { color: var(--text-faint); font-size: 12px; }
+.grid { display: grid; gap: 14px; }
+.cards { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-top-color: var(--border-hi); border-radius: var(--radius);
+  padding: 16px; box-shadow: var(--shadow);
+}
+.kpi-value { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+.kpi-label { color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+.pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+.pill.ok { background: rgba(94,231,195,0.15); color: var(--mint); }
+.pill.warn { background: rgba(232,180,74,0.15); color: var(--gold); }
+.pill.danger { background: rgba(242,116,140,0.15); color: var(--danger); }
+.pending { color: var(--text-faint); font-style: italic; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+th { color: var(--text-muted); font-weight: 600; }
+input, select, textarea, button {
+  font: inherit; color: var(--text); background: var(--surface-raised);
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px;
+}
+button { cursor: pointer; }
+button.primary { background: var(--mint); color: var(--navy); font-weight: 700; border-color: transparent; }
+button.danger { background: var(--danger); color: var(--navy); font-weight: 700; border-color: transparent; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+.layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+.nav { background: var(--surface); border-right: 1px solid var(--border); padding: 16px 10px; }
+.nav a { display: block; color: var(--text-muted); padding: 8px 10px; border-radius: 8px; }
+.nav a:hover { background: var(--surface-raised); color: var(--text); text-decoration: none; }
+.main { padding: 24px 28px; max-width: 1200px; }
+.banner { background: rgba(232,180,74,0.12); border: 1px solid var(--gold); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; color: var(--gold); }
+.banner.danger { background: rgba(242,116,140,0.12); border-color: var(--danger); color: var(--danger); }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .nav { display: flex; flex-wrap: wrap; } }

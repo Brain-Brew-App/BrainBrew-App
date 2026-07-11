@@ -45,7 +45,7 @@ If a future decision contradicts something in this document, that's a signal to 
 ### Category → Engine → Content (three levels of variety)
 
 - **Level 1 — Category** (fixed forever): Observation, Pattern, Logic, Language Logic, Attention Speed.
-- **Level 2 — Engine** (fixed mechanics, small human-curated set per category, e.g. Observation: Odd One Out, Spot the Difference, Hidden Object, Image Memory, Visual Rotation). Full engine catalog for Pattern / Logic / Language Logic / Attention Speed is not yet fully specified — that's expected next-phase design work, not a gap in this document.
+- **Level 2 — Engine** (fixed mechanics, small human-curated set per category, e.g. Observation: Odd One Out, Spot the Difference, Hidden Object, Image Memory, Visual Rotation). The full engine catalog across all five categories is now specified in [`ENGINE_CATALOG.md`](ENGINE_CATALOG.md) (Tier 2, Phase 0.8) — twenty engines, of which fifteen are recommended for Version 1. That document is subordinate to this one: where they disagree, this document wins.
 - **Level 3 — Content** (AI-generated within a fixed engine: new numbers, shapes, layouts, images, word sets).
 
 ### Category redesigns worth remembering (the "why," not just the "what")

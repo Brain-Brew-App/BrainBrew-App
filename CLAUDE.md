@@ -4,6 +4,8 @@
 
 Read [`docs/CORE_SPEC.md`](docs/CORE_SPEC.md) before making any architectural decision — it's the constitution of this app (product vision, the five categories and why they're designed the way they are, engine registry, content pipeline, scheduler, scoring, anti-cheat, incident policy, data model, tech stack, build order). It is short enough to read in full; do that rather than guessing.
 
+Read [`docs/BRAND_GUIDELINE.md`](docs/BRAND_GUIDELINE.md) before touching anything visual — logo/mascot usage, color, typography, icon assets, or loading/splash animation. Note: it supersedes the "avoid childish brain iconography" line still in `CORE_SPEC.md` §19 for the mascot decision specifically.
+
 ## The one-line summary if you only read this far
 
 Daily five-puzzle pack, identical for every user in the world, one BrewScore, compared globally/by-country/with-friends. Solo founder, deliberately simple scope, not chasing a big hit. "AI is creative, the platform is deterministic" — AI generates puzzle *content* within fixed, human-designed puzzle *engines*; it never invents new mechanics, and nothing about scoring/ranking/validation is ever non-deterministic once a puzzle is approved and stored.

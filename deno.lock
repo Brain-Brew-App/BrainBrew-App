@@ -1,0 +1,31 @@
+{
+  "version": "5",
+  "remote": {
+    "https://esm.sh/@supabase/supabase-js@2.45.4": "1108d69216995335d057dbd15907caaf514a4d1ef082f097050573b9d589a57c"
+  },
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:@electric-sql/pglite@~0.5.4",
+        "npm:@expo/metro-runtime@~57.0.3",
+        "npm:@react-native-async-storage/async-storage@2.2.0",
+        "npm:@supabase/supabase-js@^2.110.2",
+        "npm:@types/react@~19.2.2",
+        "npm:expo-sharing@~57.0.3",
+        "npm:expo-splash-screen@~57.0.2",
+        "npm:expo-status-bar@57.0",
+        "npm:expo-system-ui@57.0",
+        "npm:expo-web-browser@57.0",
+        "npm:expo@~57.0.4",
+        "npm:html-to-image@^1.11.13",
+        "npm:react-dom@19.2.3",
+        "npm:react-native-purchases@^8.5.0",
+        "npm:react-native-view-shot@5.1.0",
+        "npm:react-native-web@~0.21.2",
+        "npm:react-native@0.86.0",
+        "npm:react@19.2.3",
+        "npm:typescript@~6.0.3"
+      ]
+    }
+  }
+}

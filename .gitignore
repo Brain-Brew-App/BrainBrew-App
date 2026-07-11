@@ -30,8 +30,17 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
-.env*.local
+# local env files — every .env variant is ignored except committed *.example templates
+.env
+.env.*
+!.env.example
+!.env.db.local.example
+
+# Supabase — never commit local credentials, temp/branch state, or CLI logs
+supabase/.env
+supabase/.temp/
+supabase/.branches/
+.supabase/
 
 # typescript
 *.tsbuildinfo
@@ -39,3 +48,4 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+.env.vercel.local

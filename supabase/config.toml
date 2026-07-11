@@ -1,0 +1,17 @@
+# BrainBrew — Supabase project config.
+# Migrations in supabase/migrations/ are the source of truth for the schema.
+# The project ref is not a secret; it appears in the public project URL.
+
+project_id = "kfcshiktovyjcoepnrfw"
+
+[db]
+# Must match the remote project's Postgres major version.
+major_version = 17
+
+[db.migrations]
+# Apply files in filename (timestamp) order.
+enabled = true
+
+# Auth, Storage, Realtime, and Edge Functions are intentionally left at their
+# defaults and unused in Phase 4A. This phase ships schema + content only —
+# no accounts, no realtime, no functions. See docs/DATABASE_FOUNDATION.md.
