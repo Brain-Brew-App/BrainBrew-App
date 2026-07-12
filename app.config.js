@@ -41,6 +41,8 @@ module.exports = {
     // Package name required for a native dev build + Google Play Billing /
     // RevenueCat (Phase 7E). Testing identifier — Founder confirms before launch.
     package: 'com.brainbrew.app',
+    // Bumped manually per release (eas.json uses appVersionSource: "local").
+    versionCode: 1,
     adaptiveIcon: {
       // Launcher-icon background, not the splash. Left as-is deliberately —
       // it is an icon-design decision, not part of the launch flash.
@@ -72,4 +74,10 @@ module.exports = {
     // Inert on web, where the flow uses the Web Share API / download fallback.
     'expo-sharing',
   ],
+  // EAS project (Phase 7J). The RevenueCat PUBLIC Android SDK key is supplied as
+  // an EAS environment variable at build time — never committed here.
+  owner: 'roomly',
+  extra: {
+    eas: { projectId: '26ed6517-d357-4627-b782-7a3e41f2e3ed' },
+  },
 };

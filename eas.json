@@ -1,5 +1,4 @@
 {
-  "//": "EAS Build profiles (Phase 7E). The `development` profile produces a native dev client that includes the RevenueCat native module (react-native-purchases) — required to test sandbox/Test Store purchases (Expo Go cannot run native billing). NO secret keys live here: only the PUBLIC RevenueCat SDK keys are supplied as EXPO_PUBLIC_* env at build time, and the RevenueCat SECRET REST key + webhook secret live only as Supabase Function secrets. Fill env values in EAS project secrets, not in this file.",
   "cli": {
     "version": ">= 12.0.0",
     "appVersionSource": "local"
