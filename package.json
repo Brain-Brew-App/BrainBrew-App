@@ -17,7 +17,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.0",
-    "react-native-purchases": "^8.5.0",
+    "react-native-purchases": "^10.4.2",
     "react-native-view-shot": "5.1.0",
     "react-native-web": "^0.21.2"
   },
@@ -102,7 +102,10 @@
     "authoring:bundle": "node scripts/build-authoring-bundle.mjs",
     "authoring:bundle:check": "node scripts/build-authoring-bundle.mjs --check",
     "test:authoring-boundary": "node scripts/authoring-boundary-test.mjs",
-    "test:authoring-forms": "node scripts/authoring-engine-forms-test.mjs"
+    "test:authoring-forms": "node scripts/authoring-engine-forms-test.mjs",
+    "test:store-mode": "node scripts/store-mode-test.mjs",
+    "release:key-check": "node scripts/release-key-check.mjs",
+    "eas-build-pre-install": "node scripts/release-key-check.mjs"
   },
   "private": true
 }

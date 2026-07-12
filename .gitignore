@@ -49,3 +49,6 @@ supabase/.branches/
 /ios
 /android
 .env.vercel.local
+
+# Local Metro bundler log (dev only)
+metro.log

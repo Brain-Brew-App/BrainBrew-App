@@ -14,6 +14,7 @@
 
 import type { PurchasesAdapter, RcErrorLike } from './adapter';
 import { mapCurrentOffering } from './offerings';
+import { storeModeFor, unavailableFor, validateOfferingForMode, type StoreMode } from './storeMode';
 import type {
   CustomerState, OfferingContract, OfferingUnavailable, PurchaseOutcome, RestoreOutcome,
 } from './types';
@@ -27,6 +28,8 @@ export interface RevenueCatServiceDeps {
 }
 
 export interface RevenueCatService {
+  /** Safe diagnostics: the store mode name only — never the key. */
+  storeMode(): StoreMode;
   configure(userId: string): Promise<void>;
   logIn(userId: string): Promise<void>;
   logOutOrSwitch(): Promise<void>;
@@ -63,8 +66,11 @@ export function createRevenueCatService(deps: RevenueCatServiceDeps): RevenueCat
     appUserId: userId,
   });
 
+  const mode = storeModeFor(apiKey); // derived from the key PREFIX; key never stored elsewhere
+
   return {
     currentUserId: () => userId,
+    storeMode: () => mode,
 
     async configure(id: string) {
       if (configured && userId === id) return; // single init per identity
@@ -72,6 +78,9 @@ export function createRevenueCatService(deps: RevenueCatServiceDeps): RevenueCat
       await adapter.configure(apiKey, id);
       configured = true;
       userId = id;
+      // Safe diagnostic: mode NAME + a short id prefix. Never the key, never the
+      // full App User ID (which is the player's auth UUID).
+      if (isDev) console.log(`[revenuecat] configured mode=${mode} appUserIdPrefix=${id.slice(0, 8)}…`);
     },
 
     async logIn(id: string) {
@@ -94,7 +103,19 @@ export function createRevenueCatService(deps: RevenueCatServiceDeps): RevenueCat
       try {
         const raw = await adapter.getOfferings();
         const offering = mapCurrentOffering(raw);
-        if (!offering) return { unavailable: 'not_configured' as OfferingUnavailable };
+
+        // Environment-specific catalogue check. The package→product mapping decides
+        // what the user is actually charged for, so a Play product in a Test Store
+        // build (or vice versa) is rejected, not rendered.
+        const check = validateOfferingForMode(offering, mode);
+        if (!check.ok) {
+          // Safe to log: offering/package/product ids are public catalogue names.
+          if (isDev) console.warn(`[revenuecat] offering rejected (${mode}/${check.reason}): ${check.detail}`);
+          return { unavailable: unavailableFor(check.reason) as OfferingUnavailable };
+        }
+        if (isDev) {
+          console.log(`[revenuecat] mode=${mode} offering=${check.offering.offeringId} monthly=${check.monthly.productId} annual=${check.annual.productId}`);
+        }
         rawPackages = new Map();
         // Re-associate each mapped package id with its raw package for purchase.
         const current = (raw as { current?: { availablePackages?: unknown[] } })?.current;
@@ -102,7 +123,7 @@ export function createRevenueCatService(deps: RevenueCatServiceDeps): RevenueCat
           const pid = (pkg as { identifier?: string })?.identifier;
           if (pid) rawPackages.set(pid, pkg);
         }
-        return { offering };
+        return { offering: check.offering };
       } catch {
         return { unavailable: 'store_unavailable' as OfferingUnavailable };
       }

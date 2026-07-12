@@ -42,7 +42,7 @@ module.exports = {
     // RevenueCat (Phase 7E). Testing identifier — Founder confirms before launch.
     package: 'com.brainbrew.app',
     // Bumped manually per release (eas.json uses appVersionSource: "local").
-    versionCode: 1,
+    versionCode: 2,
     adaptiveIcon: {
       // Launcher-icon background, not the splash. Left as-is deliberately —
       // it is an icon-design decision, not part of the launch flash.
