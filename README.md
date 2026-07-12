@@ -149,6 +149,7 @@ checks below prove the whole path locally (PGlite; no remote needed):
 | `npm run db:entitlement-test` | beta policy for anon+permanent, all capabilities, ranked-limit-1 invariant, no-user-param, anon denied |
 | `npm run db:admin-test` | admin RBAC matrix, audit immutability, maintenance enforcement, KPI formulas, security |
 | `npm run db:authoring-test` | content authoring review state machine (validation-gates-approval, two-person control, promote-to-reserve, security) |
+| `npm run db:pack-drafts-test` | pack draft → publish backend (slot eligibility, validation blockers/warnings, two-person + Founder emergency, atomic/idempotent publish reusing `publish_pack`, duplicate-date, live immutability, concurrency, security) |
 | `npm run test:canonical-authoring` | canonical builder+validator reuse (326 puzzles valid, broken candidates caught) |
 | `npm run test:authoring-boundary` | the Admin's generated canonical bundle is byte-identical to the content pipeline (326 puzzles: hash, split, validator) + build failures handled |
 | `npm run authoring:bundle:check` | the committed Admin authoring bundle is not stale vs `src/content` |

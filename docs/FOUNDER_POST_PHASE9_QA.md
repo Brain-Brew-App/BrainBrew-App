@@ -71,8 +71,11 @@ Route base: `/content/authoring/new/{engineId}`. Test ids only.
 - [ ] Answer overlay appears only for reviewer roles with recent auth; hidden otherwise · Authoring preview · Content vs Viewer · reveal answer · gated + audited · **High**.
 - [ ] Version-pinning surfaces re-review when a draft is rebuilt under a newer builder/validator (diff shown) · Authoring · Content · rebuild · stale review cleared · Med.
 
-## Admin — pack operations (milestone)
-- [ ] Draft pack create/suggest/validate/schedule/publish (isolated future test date); live mutation blocked; void fixture · Packs · Founder/Content · *not yet built — read pages + safety rules live.* · **High**.
+## Admin — pack operations (7I backend live/tested; editor UI + scheduler + incident-void UI deferred)
+- [ ] Draft pack create → fill five slots → validate → submit → approve → publish to an **isolated future test date**; confirm canonical live pack + 5 slots; duplicate-date blocked; live mutation blocked · Packs · Founder/Content · *backend tested (`db:pack-drafts-test` 42); pack editor + scheduler UI is the next checkpoint.* · **High** · screenshots once UI exists.
+- [ ] Scheduler-assisted suggestion quality, slot replacement UX, constraint/warning explanations, difficulty-balance readability · Pack editor · *UI deferred.* · Med.
+- [ ] Publication confirmation copy (future date, reason, typed confirm, recent-auth) + future-correction messaging (cancel + republish) · Pack publish · *UI deferred.* · High.
+- [ ] Incident void: open incident from a live/historical slot, void without substitution, recalculation progress, leaderboard/progress correction, retry UX · Incidents · Founder · *void/recalc backend exists (ranked); incident-void UI deferred.* · **High**.
 
 ## Admin — support / exports / health / maintenance / incidents / audit
 - [ ] User Support lookup (safe fields); mark test subject audited · Support · Founder/Support · search · no PII beyond policy · Med.
