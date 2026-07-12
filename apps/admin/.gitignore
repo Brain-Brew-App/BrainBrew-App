@@ -11,3 +11,9 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# Playwright
+/test-results
+/playwright-report
+/playwright/.cache
+.last-run.json

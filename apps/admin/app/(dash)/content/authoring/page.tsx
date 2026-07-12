@@ -18,7 +18,11 @@ export default async function AuthoringHome() {
 
   return (
     <div>
-      <h1>Authoring</h1>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <h1 style={{ margin: 0 }}>Authoring</h1>
+        <a href="/content/authoring/queue" className="pill ok" style={{ textDecoration: 'none' }}>Review queue →</a>
+      </div>
+      <div style={{ height: 12 }} />
       <p className="faint" style={{ marginBottom: 16 }}>
         Author a typed seed → canonical build → independent validation → safe preview. Unapproved
         candidates never touch canonical content. All 15 active engines across the five categories

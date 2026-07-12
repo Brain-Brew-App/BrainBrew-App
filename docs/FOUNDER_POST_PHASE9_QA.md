@@ -44,6 +44,15 @@ Evidence required.**
 - [ ] Delete unused draft (reauth + typed confirm); used denied · Puzzle detail · test draft · delete · works only for eligible draft · **High**.
 - [ ] **Authoring UI (create → build → validate → preview → review → approve → reserve)** · Authoring · Content/Founder · author a test puzzle · canonical build+validate; two-person approval · **High** · *canonical build/validate boundary live/tested (7H.3.1); 15-engine forms + preview UI still to build (7H.3.2–3).*
 
+## Admin — content operations UI (7I.2; wired to tested backends, visual/usability deferred)
+Routes: `/content/authoring/queue`, `/content/authoring/draft/{id}`, `/packs/authoring`, `/packs/authoring/{id}`. Test fixtures only.
+- [ ] Review queue: paginated, status filters, no answer fields in the list; opens a draft workbench · Content/Founder · click through · fast, correct · **High** · screenshots.
+- [ ] Workbench: metadata/validation/preview (320+390dp); request-changes/reject/approve with two-person control (self-approve blocked); Founder emergency (recent auth); promote-to-reserve (recent auth, idempotent) · Content×2 + Founder · run the loop with two accounts · correct gating + audit · **High** · video (two users).
+- [ ] Answer overlay in the workbench only for a reviewer with recent auth; hidden for Viewer/Finance/Support · workbench · role matrix · gated · **High**.
+- [ ] Pack editor: create draft → auto-suggest → set/replace slots (eligible selector, category-locked) → validate (blockers vs warnings) → submit → review/approve → publish to a **future isolated date** (recent auth + typed PUBLISH) → canonical live pack + 5 slots; duplicate-date + past-date blocked; cancel/republish for correction · Content/Founder · full flow · **High** · screenshots + audit.
+- [ ] Scheduler suggestion quality + cross-draft conflict avoidance readability (basic suggester today) · pack editor · review · Med.
+- [ ] Playwright credentialed suite (per-role RBAC, puzzle/pack/incident lifecycle, failure injection) executed in CI against a protected preview with test-user secrets · CI · **High** · CI run. (auth.spec route-protection is implemented + passing; incident-void UI + credentialed specs are the remaining certification.)
+
 ## Admin — Observation & Pattern authoring forms (7H.3.2A; automated done, visual/usability deferred)
 Route base: `/content/authoring` → `/content/authoring/new/{engineId}`. Use **test** ids only; never a canonical production puzzle id.
 - [ ] Each of the 6 forms (OBS_001, OBS_003, OBS_004, PAT_001, PAT_002, PAT_003) renders its field groups; Build & validate shows the validation summary; preview renders at **320dp and 390dp** · Content/Founder · open each engine, keep defaults, Build · passed + preview appears · **High** · screenshot per engine at both widths.
