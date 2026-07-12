@@ -67,7 +67,7 @@ export async function authorFromFormAction(engineId: string, form: Record<string
 
 const sha256 = (s: string) => createHash('sha256').update(s).digest('hex');
 
-export interface SaveResult { ok: boolean; draftId?: string; error?: string }
+export interface SaveResult { ok: boolean; draftId?: string; contentHash?: string; error?: string }
 
 /**
  * Persist a built + passing candidate as an authoring draft, reusing the tested
@@ -106,8 +106,37 @@ export async function saveDraftAction(engineId: string, form: Record<string, unk
     const r = (await adminClient().rpc('admin_save_draft', { p_id: null, p_fields: payload, p_by: ctx.userId })).data as { ok?: boolean; id?: string } | null;
     if (!r?.ok || !r.id) return { ok: false, error: 'Save was rejected by the server.' };
     await writeAudit(ctx, { action: 'authoring_save_ui', targetType: 'draft', targetId: r.id, summary: { engineId, contentHash: build.contentHash, seedHash: sha256(build.seedHash) } });
-    return { ok: true, draftId: r.id };
+    return { ok: true, draftId: r.id, contentHash: build.contentHash };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message.split('\n')[0] : 'Save failed.' };
+  }
+}
+
+export interface SubmitResult { ok: boolean; error?: string }
+
+/**
+ * Submit a saved draft for review, reusing the tested 7H.2
+ * `admin_submit_draft_review` RPC (which enforces status='built', i.e. a passing
+ * validation). Requires author notes and a matching content hash (guards against
+ * submitting after an unsaved edit / stale build). Audited.
+ */
+export async function submitDraftForReviewAction(draftId: string, expectedHash: string, notes: string): Promise<SubmitResult> {
+  const ctx = await requireCapability('manage_content');
+  const trimmed = notes.trim();
+  if (trimmed.length < 3) return { ok: false, error: 'Author notes are required.' };
+
+  // Stale-guard: the stored draft must still match the hash the author reviewed.
+  const draft = (await adminClient().from('authoring_drafts').select('content_hash,status').eq('id', draftId).maybeSingle()).data as { content_hash?: string; status?: string } | null;
+  if (!draft) return { ok: false, error: 'Draft not found.' };
+  if (draft.content_hash !== expectedHash) return { ok: false, error: 'The draft changed since your last build — rebuild and save before submitting.' };
+  if (draft.status !== 'built') return { ok: false, error: `Draft is ${draft.status ?? 'unknown'} — only a built, passing draft can be submitted.` };
+
+  try {
+    const r = (await adminClient().rpc('admin_submit_draft_review', { p_id: draftId, p_notes: trimmed, p_by: ctx.userId })).data as { ok?: boolean; reason?: string } | null;
+    if (!r?.ok) return { ok: false, error: `Submit rejected (${r?.reason ?? 'error'}).` };
+    await writeAudit(ctx, { action: 'authoring_submit_ui', targetType: 'draft', targetId: draftId, summary: { contentHash: expectedHash }, reason: trimmed });
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message.split('\n')[0] : 'Submit failed.' };
   }
 }

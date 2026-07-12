@@ -37,8 +37,15 @@ export const AUTHORING_VOCAB: {
   glyphFamilies: Record<string, readonly string[]>;
   pairGlyphs: readonly string[];
   sweepGlyphs: readonly string[];
+  memoryGlyphs: readonly string[];
   sequenceFamilies: readonly string[];
   matrixRules: readonly string[];
+  scenarioOptions: Record<string, { value: string; label: string }[]>;
+  scenarioCounts: Record<string, number>;
+  classificationRules: { value: string; label: string; buckets: [string, string] }[];
+  balanceTemplates: readonly { value: string; label: string; params: readonly string[] }[];
+  memoryExposureByDifficulty: Record<number, number>;
+  memoryIntervalMs: number;
 };
 export const ENGINE_IDS: string[];
 export const ENGINE_REGISTRY: EngineRegistryEntry[];

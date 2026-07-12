@@ -51,12 +51,30 @@ function buildDefault(engineId) {
   return { schema, seed, res };
 }
 
-// ── Registry sanity ──────────────────────────────────────────────────────────
-ok('registry has exactly the 6 Observation+Pattern engines', eq(Object.keys(FORM_REGISTRY).sort(), ['OBS_001', 'OBS_003', 'OBS_004', 'PAT_001', 'PAT_002', 'PAT_003']));
-ok('unknown engine is not authorable', isAuthorableEngine('LOG_001') === false && isAuthorableEngine('NOPE') === false);
+// ── Registry sanity — all 15 active engines ──────────────────────────────────
+const ALL_15 = ['OBS_001', 'OBS_003', 'OBS_004', 'PAT_001', 'PAT_002', 'PAT_003', 'LOG_001', 'LOG_002', 'LOG_003', 'LNG_001', 'LNG_002', 'LNG_003', 'ATT_001', 'ATT_002', 'ATT_003'];
+ok('registry has exactly the 15 active engines', eq(Object.keys(FORM_REGISTRY).sort(), [...ALL_15].sort()));
+ok('unknown engine is not authorable', isAuthorableEngine('NOPE') === false && isAuthorableEngine('ATT_099') === false);
 let threw = false;
-try { getFormSchema('LOG_001'); } catch { threw = true; }
+try { getFormSchema('NOPE'); } catch { threw = true; }
 ok('getFormSchema throws on a non-authorable engine', threw);
+
+// ── Cross-engine completeness (Task 19) ──────────────────────────────────────
+const CATEGORY = { OBS: 'observation', PAT: 'pattern', LOG: 'logic', LNG: 'language-logic', ATT: 'attention-speed' };
+const seenIds = new Set();
+for (const id of ALL_15) {
+  const s = getFormSchema(id);
+  ok(`${id}: engineId matches key`, s.engineId === id);
+  ok(`${id}: category correct`, s.category === CATEGORY[id.slice(0, 3)]);
+  ok(`${id}: unique engine id`, !seenIds.has(id) && (seenIds.add(id), true));
+  ok(`${id}: schemaVersion present`, typeof s.schemaVersion === 'number' && s.schemaVersion >= 1);
+  ok(`${id}: has field groups`, Array.isArray(s.fieldGroups) && s.fieldGroups.length > 0);
+  ok(`${id}: previewAdapter + serialize + clientValidate are functions`, typeof s.previewAdapter === 'function' && typeof s.serializeFormToSeed === 'function' && typeof s.clientValidate === 'function');
+  ok(`${id}: help/a11y/small-screen notes non-empty`, s.helpText.length > 0 && s.accessibilityNotes.length > 0 && s.smallScreenNotes.length > 0 && s.approvedInputs.length > 0);
+  // No engine field can set a score formula (none of the field kinds do).
+  const kinds = s.fieldGroups.flatMap((g) => g.fields.map((f) => f.kind));
+  ok(`${id}: no scoring/formula field kind`, kinds.every((k) => ['number', 'select', 'glyph', 'glyph-multi', 'difficulty', 'index-pair', 'matrix-rule'].includes(k)));
+}
 
 // ── Per-engine: default valid, round-trip, client checks, preview ────────────
 for (const engineId of Object.keys(FORM_REGISTRY)) {
@@ -135,7 +153,42 @@ flags('PAT_003', 'corrupted term first/last (unsupported position)', (p) => { p.
 flags('PAT_003', 'unsupported term count (not six)', (p) => { p.terms = p.terms.slice(0, 5); });
 flags('PAT_003', 'term too wide for the chip row', (p) => { p.terms[2] = '1234'; });
 
+// ── Logic / Language / Attention mutations (canonical validator catches each) ─
+// LOG_001 Deduction — structural validator rules (correctness is guaranteed by the curated scenario).
+flags('LOG_001', 'a premise missing its full stop', (p) => { p.premises[0] = p.premises[0].replace(/\.$/, ''); });
+flags('LOG_001', 'an option longer than 14 words', (p) => { const o = p.options[1]; o.label = Array.from({ length: 16 }, () => 'word').join(' '); });
+// LOG_002 Balance — wrong answer key, non-unique/near-miss options.
+flags('LOG_002', 'correct option relabelled to a wrong ratio', (p) => { const c = p.options.find((o) => o.id === p.correctOptionId); c.label = String(Number(c.label) + 3); });
+flags('LOG_002', 'the solved ratio appears twice', (p) => { const c = p.options.find((o) => o.id === p.correctOptionId); const d = p.options.find((o) => o.id !== p.correctOptionId); d.label = c.label; });
+// LOG_003 Ordering — wrong correct order, duplicate item label.
+flags('LOG_003', 'correctOrder is not the clues’ ordering', (p) => { p.correctOrder = [...p.correctOrder].reverse(); });
+flags('LOG_003', 'duplicate item label', (p) => { p.items[1].label = p.items[0].label; });
+// LNG_001 Analogy — grammar band + relation overlap.
+flags('LNG_001', 'an option outside the word band (lowercase/space)', (p) => { p.options[1].label = 'two words'; });
+flags('LNG_001', 'an option already in the relation', (p) => { const w = p.relation.join(' ').match(/[A-Z]{3,12}/)[0]; p.options[1].label = w; });
+// LNG_002 Odd Word Out — wrong outlier keyed.
+flags('LNG_002', 'correct option is not the odd word', (p) => { const other = p.options.find((o) => o.id !== p.correctOptionId); p.correctOptionId = other.id; });
+flags('LNG_002', 'a word outside the band', (p) => { p.options[0].label = 'lower'; });
+// LNG_003 Sentence Ordering — wrong order, duplicate fragment.
+flags('LNG_003', 'correctOrder violates the constraints', (p) => { p.correctOrder = [p.constraints.closesId, ...p.correctOrder.filter((x) => x !== p.constraints.closesId)]; });
+flags('LNG_003', 'duplicate fragment id', (p) => { p.fragments[1].id = p.fragments[0].id; });
+// ATT_001 Symbol Sweep — misflag, all-targets, duplicate id, bad columns.
+flags('ATT_001', 'misflagged target (isTarget disagrees)', (p) => { const s = p.symbols.find((x) => !x.isTarget); s.isTarget = true; });
+flags('ATT_001', 'every tile a target (exploitable board)', (p) => { for (const s of p.symbols) { s.glyph = p.targetGlyph; s.isTarget = true; } });
+flags('ATT_001', 'duplicate symbol ids', (p) => { p.symbols[1].id = p.symbols[0].id; });
+// ATT_002 Memory Flash — targetIds mismatch, repeated board glyph.
+flags('ATT_002', 'targetIds points at a non-target tile', (p) => { const nonTarget = p.board.find((t) => !p.targetIds.includes(t.id)); p.targetIds[0] = nonTarget.id; });
+flags('ATT_002', 'board repeats a glyph', (p) => { const a = p.board.find((t) => !p.targetIds.includes(t.id)); const b = p.board.find((t) => t.id !== a.id && !p.targetIds.includes(t.id)); b.glyph = a.glyph; });
+// ATT_003 Rapid Classification — wrong bucket, glyph outside alphabet.
+flags('ATT_003', 'an item filed in the wrong bucket', (p) => { p.items[0].bucket = p.items[0].bucket === 0 ? 1 : 0; });
+flags('ATT_003', 'an item glyph outside the curated alphabet', (p) => { p.items[0].glyph = 'Z'; });
+
 // seed-level range rejects via clientValidate
+ok('LOG_001: scenario out of range rejected client-side', getFormSchema('LOG_001').clientValidate({ ...getFormSchema('LOG_001').defaultForm, scenario: 9999 }).ok === false);
+ok('LOG_002: template B with non-integer ratio rejected client-side', getFormSchema('LOG_002').clientValidate({ ...getFormSchema('LOG_002').defaultForm, template: 'B', p0: 3, p1: 2, p2: 2 }).ok === false);
+ok('ATT_002: difficulty 1 (no exposure band) rejected client-side', getFormSchema('ATT_002').clientValidate({ ...getFormSchema('ATT_002').defaultForm, difficulty: 1 }).ok === false);
+ok('ATT_003: odd item count rejected client-side', getFormSchema('ATT_003').clientValidate({ ...getFormSchema('ATT_003').defaultForm, items: 11 }).ok === false);
+ok('ATT_001: distractors including target rejected client-side', (() => { const s = getFormSchema('ATT_001'); return s.clientValidate({ ...s.defaultForm, distractors: [s.defaultForm.target, ...s.defaultForm.distractors] }).ok === false; })());
 ok('PAT_003: corruptIndex 0 rejected client-side', getFormSchema('PAT_003').clientValidate({ ...getFormSchema('PAT_003').defaultForm, corruptIndex: 0 }).ok === false);
 ok('OBS_001: oddIndex 0 rejected client-side', getFormSchema('OBS_001').clientValidate({ ...getFormSchema('OBS_001').defaultForm, oddIndex: 0 }).ok === false);
 ok('PAT_002: all-row-constant degenerate rejected client-side', getFormSchema('PAT_002').clientValidate({ ...getFormSchema('PAT_002').defaultForm, ruleShape: 'rowConstant', ruleCount: 'rowConstant', ruleFill: 'rowConstant' }).ok === false);
@@ -148,4 +201,4 @@ if (failures.length) {
   for (const f of failures.slice(0, 40)) console.error(`  ✕ ${f}`);
   process.exit(1);
 }
-console.log(`✓ ${passed} authoring-form checks passed — 6 Observation+Pattern schemas: default valid, round-trips, client rejects, canonical mutation catches, preview adapters + answer secrecy`);
+console.log(`✓ ${passed} authoring-form checks passed — all 15 engine schemas: registry+cross-engine completeness, default valid, round-trips, client rejects, canonical mutation catches, preview adapters + answer secrecy`);

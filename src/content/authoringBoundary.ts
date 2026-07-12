@@ -43,7 +43,37 @@ import {
 import { ENGINE_REGISTRY } from './engines';
 import { validatePuzzle } from './validators';
 import { ALWAYS_PRIVATE_FIELDS, ENGINE_SPLIT } from '../infrastructure/supabase/publicFields';
-import { GLYPH_FAMILIES, PAIR_GLYPHS, SWEEP_GLYPHS } from './lexicon';
+import {
+  ANALOGIES,
+  CLASSIFICATION_RULES,
+  DEDUCTION_SCENARIOS,
+  GLYPH_FAMILIES,
+  MEMORY_EXPOSURE_BY_DIFFICULTY,
+  MEMORY_INTERVAL_MS,
+  ODD_WORD_SETS,
+  ORDERING_SCENARIOS,
+  PAIR_GLYPHS,
+  SENTENCE_SETS,
+  SWEEP_GLYPHS,
+} from './lexicon';
+import { MEMORY_GLYPHS } from './authoring';
+
+/** A safe {value,label} option — never carries a correct answer. */
+type Opt = { value: string; label: string };
+
+/**
+ * Answer-free scenario selectors for the curated engines. Labels are derived from
+ * PUBLIC scenario fields only (never the `answer`/`outlier`/`correctOrder`), so
+ * the option lists shipped to an authoring form leak nothing. The full curated
+ * tables (with answers) stay in the bundle, used only by the server-side builder.
+ */
+const scenarioOptions: Record<string, Opt[]> = {
+  LOG_001: DEDUCTION_SCENARIOS.map((s, i) => ({ value: String(i), label: `${i}: ${s.form}` })),
+  LNG_001: ANALOGIES.map((e, i) => ({ value: String(i), label: `${i}: ${e.relation} — ${e.given[0]} : ${e.given[1]}` })),
+  LNG_002: ODD_WORD_SETS.map((s, i) => ({ value: String(i), label: `${i}: ${s.words[0]} / ${s.words[1]} / ${s.words[2]} / …` })),
+  LOG_003: ORDERING_SCENARIOS.map((s, i) => ({ value: String(i), label: `${i}: ${s.items.join(', ')} (${s.verb})` })),
+  LNG_003: SENTENCE_SETS.map((s, i) => ({ value: String(i), label: `${i}: ${s.fragments[0]}…` })),
+};
 
 /**
  * The curated authoring vocabularies, surfaced for the Admin forms so they offer
@@ -54,10 +84,28 @@ export const AUTHORING_VOCAB = {
   glyphFamilies: GLYPH_FAMILIES as Record<string, readonly string[]>,
   pairGlyphs: PAIR_GLYPHS as readonly string[],
   sweepGlyphs: SWEEP_GLYPHS as readonly string[],
+  memoryGlyphs: [...MEMORY_GLYPHS] as readonly string[],
   sequenceFamilies: [
     'arithmetic', 'geometric', 'divide', 'squares', 'triangular', 'oblong', 'fibonacci', 'alternating',
   ] as const,
   matrixRules: ['rowConstant', 'colConstant', 'latin'] as const,
+  scenarioOptions,
+  scenarioCounts: {
+    LOG_001: DEDUCTION_SCENARIOS.length,
+    LNG_001: ANALOGIES.length,
+    LNG_002: ODD_WORD_SETS.length,
+    LOG_003: ORDERING_SCENARIOS.length,
+    LNG_003: SENTENCE_SETS.length,
+  } as Record<string, number>,
+  classificationRules: Object.values(CLASSIFICATION_RULES).map((r) => ({ value: r.key, label: r.question, buckets: r.buckets as [string, string] })),
+  balanceTemplates: [
+    { value: 'A', label: 'A · ▲=k■, ◆=m▲ → ◆ in ■ (2 scales)', params: ['k', 'm'] },
+    { value: 'D', label: 'D · ◆=a■, ●=b◆ → ● in ■ (2 scales)', params: ['a', 'b'] },
+    { value: 'B', label: 'B · a●=b▲, ▲=t■ → ● in ■ (2 scales)', params: ['a', 'b', 't'] },
+    { value: 'C', label: 'C · ▲=k■, ◆=2▲, ◆=n● → ● in ■ (3 scales)', params: ['k', 'n'] },
+  ] as const,
+  memoryExposureByDifficulty: MEMORY_EXPOSURE_BY_DIFFICULTY as Record<number, number>,
+  memoryIntervalMs: MEMORY_INTERVAL_MS,
 } as const;
 
 /** The 15 canonical builders, keyed by engine id (via the registry's builderId). */

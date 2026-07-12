@@ -1606,10 +1606,18 @@ var ENGINE_SPLIT = {
 };
 
 // src/content/authoringBoundary.ts
+var scenarioOptions = {
+  LOG_001: DEDUCTION_SCENARIOS.map((s, i) => ({ value: String(i), label: `${i}: ${s.form}` })),
+  LNG_001: ANALOGIES.map((e, i) => ({ value: String(i), label: `${i}: ${e.relation} \u2014 ${e.given[0]} : ${e.given[1]}` })),
+  LNG_002: ODD_WORD_SETS.map((s, i) => ({ value: String(i), label: `${i}: ${s.words[0]} / ${s.words[1]} / ${s.words[2]} / \u2026` })),
+  LOG_003: ORDERING_SCENARIOS.map((s, i) => ({ value: String(i), label: `${i}: ${s.items.join(", ")} (${s.verb})` })),
+  LNG_003: SENTENCE_SETS.map((s, i) => ({ value: String(i), label: `${i}: ${s.fragments[0]}\u2026` }))
+};
 var AUTHORING_VOCAB = {
   glyphFamilies: GLYPH_FAMILIES,
   pairGlyphs: PAIR_GLYPHS,
   sweepGlyphs: SWEEP_GLYPHS,
+  memoryGlyphs: [...MEMORY_GLYPHS],
   sequenceFamilies: [
     "arithmetic",
     "geometric",
@@ -1620,7 +1628,24 @@ var AUTHORING_VOCAB = {
     "fibonacci",
     "alternating"
   ],
-  matrixRules: ["rowConstant", "colConstant", "latin"]
+  matrixRules: ["rowConstant", "colConstant", "latin"],
+  scenarioOptions,
+  scenarioCounts: {
+    LOG_001: DEDUCTION_SCENARIOS.length,
+    LNG_001: ANALOGIES.length,
+    LNG_002: ODD_WORD_SETS.length,
+    LOG_003: ORDERING_SCENARIOS.length,
+    LNG_003: SENTENCE_SETS.length
+  },
+  classificationRules: Object.values(CLASSIFICATION_RULES).map((r) => ({ value: r.key, label: r.question, buckets: r.buckets })),
+  balanceTemplates: [
+    { value: "A", label: "A \xB7 \u25B2=k\u25A0, \u25C6=m\u25B2 \u2192 \u25C6 in \u25A0 (2 scales)", params: ["k", "m"] },
+    { value: "D", label: "D \xB7 \u25C6=a\u25A0, \u25CF=b\u25C6 \u2192 \u25CF in \u25A0 (2 scales)", params: ["a", "b"] },
+    { value: "B", label: "B \xB7 a\u25CF=b\u25B2, \u25B2=t\u25A0 \u2192 \u25CF in \u25A0 (2 scales)", params: ["a", "b", "t"] },
+    { value: "C", label: "C \xB7 \u25B2=k\u25A0, \u25C6=2\u25B2, \u25C6=n\u25CF \u2192 \u25CF in \u25A0 (3 scales)", params: ["k", "n"] }
+  ],
+  memoryExposureByDifficulty: MEMORY_EXPOSURE_BY_DIFFICULTY,
+  memoryIntervalMs: MEMORY_INTERVAL_MS
 };
 var BUILDER_FNS = {
   oddOneOut,

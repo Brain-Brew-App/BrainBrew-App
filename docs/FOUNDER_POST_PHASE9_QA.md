@@ -55,6 +55,17 @@ Route base: `/content/authoring` → `/content/authoring/new/{engineId}`. Use **
 - [ ] Keyboard-only operation of every control (selects, glyph radio/checkbox grids, difficulty segmented, buttons); focus visible; ≥44–48px targets · all forms · keyboard + screen reader · usable · Med · a11y notes.
 - [ ] Tablet/wide layout: two-column form/preview does not overflow; 320dp preview never causes body horizontal scroll · all forms · resize · clean · Med.
 
+## Admin — Logic / Language Logic / Attention Speed authoring forms (7H.3.2B; automated done, visual deferred)
+Route base: `/content/authoring/new/{engineId}`. Test ids only.
+- [ ] All 15 engines appear on `/content/authoring` grouped by the five categories; each opens a working form · Authoring · Content/Founder · click each · loads · **High** · screenshot the landing.
+- [ ] Logic: LOG_001 premises + options render; LOG_002 balance scales draw connected (trays/beam); LOG_003 clue list + shuffled items · build each default · passed + preview 320/390dp · **High** · screenshot.
+- [ ] Language: LNG_001 two-line analogy; LNG_002 four words; LNG_003 fragments with the **"Human review mandatory"** warning visible · build each · preview correct · **High** · screenshot (confirm the warning).
+- [ ] Attention: ATT_001 sweep grid + duration; ATT_002 memory storyboard (ready→exposure→interval→selection); ATT_003 stream + two buckets · build each · storyboard reads clearly; no real timer runs · **High** · screenshot both widths + on-device glyph render.
+- [ ] Balance template params: template B with non-integer ratio shows an inline error and blocks build; a valid A/D/C builds · LOG_002 · try invalid + valid · gated · **High**.
+- [ ] Answer overlay gating holds for every new engine (correct option / order / target tiles / bucket only visible on authorized reveal) · previews · Content vs Viewer · **High**.
+- [ ] Submit for review: after Save, entering notes and submitting flips a valid draft to awaiting_review; a failing/edited draft is blocked · any engine · Content · Save → Submit · status change + audit · **High**.
+- [ ] Attention timing fairness copy (accuracy-first, begin-gate) is present and truthful; no sub-200ms reflex design · ATT_* · review · Med.
+
 ## Admin — authoring canonical boundary (7H.3.1, automated; human spot-check deferred)
 - [ ] Build a candidate for each of the 15 engines through the form → `buildCandidateAction`; validation findings render clearly; a failing build shows a safe error, never a partial save · Authoring · Content/Founder · *forms not yet built; boundary + action live/tested by `test:authoring-boundary`.* · **High** · screenshots per engine.
 - [ ] Answer overlay appears only for reviewer roles with recent auth; hidden otherwise · Authoring preview · Content vs Viewer · reveal answer · gated + audited · **High**.

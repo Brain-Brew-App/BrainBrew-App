@@ -21,8 +21,8 @@ export default async function AuthoringHome() {
       <h1>Authoring</h1>
       <p className="faint" style={{ marginBottom: 16 }}>
         Author a typed seed → canonical build → independent validation → safe preview. Unapproved
-        candidates never touch canonical content. Observation &amp; Pattern engines are live; Logic,
-        Language Logic and Attention Speed forms follow in the next checkpoints.
+        candidates never touch canonical content. All 15 active engines across the five categories
+        are authorable through this one workflow.
       </p>
 
       {cats.map((c) => (
@@ -43,10 +43,6 @@ export default async function AuthoringHome() {
         </section>
       ))}
 
-      <section style={{ marginTop: 8 }}>
-        <div className="kpi-label" style={{ marginBottom: 8 }}>Coming next</div>
-        <p className="pending">Logic (LOG_001–003), Language Logic (LNG_001–003) and Attention Speed (ATT_001–003) authoring forms are checkpoint 7H.3.2B, on the same registry-driven architecture.</p>
-      </section>
     </div>
   );
 }

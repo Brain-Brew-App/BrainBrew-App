@@ -98,15 +98,129 @@ function ModelBody({ model }: { model: PreviewModel }) {
       </div>
     );
   }
-  // chip-repair
+  if (model.kind === 'chip-repair') {
+    return (
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {model.terms.map((t, i) => {
+          const wrong = model.wrongIndex === i;
+          return (
+            <div key={i} style={{ minWidth: 40, padding: '10px 12px', textAlign: 'center', borderRadius: 8, background: wrong ? 'rgba(242,116,140,0.18)' : 'var(--surface-raised)', border: `1px solid ${wrong ? 'var(--danger)' : 'var(--border)'}`, fontWeight: 700 }}>{t}{wrong ? ' ✕' : ''}</div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  const optRow = (options: { id: string; label: string; correct?: boolean }[]) => (
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
+      {options.map((o) => (
+        <div key={o.id} style={{ padding: '8px 12px', borderRadius: 8, fontSize: 13, border: `1px solid ${o.correct ? 'var(--mint)' : 'var(--border)'}`, background: o.correct ? 'rgba(94,231,195,0.12)' : 'transparent' }}>{o.label}{o.correct ? ' ✓' : ''}</div>
+      ))}
+    </div>
+  );
+
+  if (model.kind === 'labeled-options') {
+    return (
+      <div>
+        {model.contextLines.map((l, i) => <p key={i} style={{ margin: '2px 0' }}>{l}</p>)}
+        <div className="kpi-label" style={{ marginTop: 10 }}>Options</div>
+        {optRow(model.options)}
+      </div>
+    );
+  }
+
+  if (model.kind === 'ordering') {
+    const orderMap = new Map((model.correctOrder ?? []).map((id, i) => [id, i + 1]));
+    return (
+      <div>
+        {model.note && <p className="pill warn" style={{ display: 'inline-block', marginBottom: 8 }}>{model.note}</p>}
+        <div className="kpi-label">Items (shuffled)</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
+          {model.items.map((it) => {
+            const pos = orderMap.get(it.id);
+            return (
+              <div key={it.id} style={{ padding: '8px 12px', borderRadius: 8, background: 'var(--surface-raised)', border: `1px solid ${pos ? 'var(--mint)' : 'var(--border)'}` }}>
+                {pos ? <b style={{ color: 'var(--mint)' }}>{pos}. </b> : null}{it.label}
+              </div>
+            );
+          })}
+        </div>
+        {model.clues.length > 0 && (
+          <>
+            <div className="kpi-label" style={{ marginTop: 10 }}>Clues</div>
+            <ul style={{ margin: '4px 0', paddingLeft: 18 }}>{model.clues.map((c, i) => <li key={i}>{c}</li>)}</ul>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  if (model.kind === 'balance') {
+    const pan = (glyphs: string[]) => (
+      <div style={{ display: 'flex', gap: 4, padding: '6px 10px', borderRadius: 8, background: 'var(--surface-raised)', border: '1px solid var(--border)', minWidth: 44, justifyContent: 'center' }}>
+        {glyphs.map((g, i) => <span key={i} style={{ fontSize: 18 }}>{g}</span>)}
+      </div>
+    );
+    return (
+      <div>
+        {model.scales.map((s, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            {pan(s.left)}
+            <span aria-hidden style={{ color: 'var(--text-faint)' }}>⚖</span>
+            {pan(s.right)}
+          </div>
+        ))}
+        <p style={{ marginTop: 6 }}>How many <b>{model.query.unit}</b> balance one <b>{model.query.subject}</b>?</p>
+        {optRow(model.options)}
+      </div>
+    );
+  }
+
+  if (model.kind === 'symbol-grid') {
+    return (
+      <div>
+        <p className="faint">Tap every {model.targetGlyph} · {(model.durationMs / 1000).toFixed(1)}s · begin-gate before the clock</p>
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${model.columns}, 1fr)`, gap: 4, marginTop: 6 }}>
+          {model.symbols.map((s, i) => (
+            <div key={i} style={{ aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, borderRadius: 6, background: s.target ? 'rgba(94,231,195,0.18)' : 'var(--surface-raised)', border: `1px solid ${s.target ? 'var(--mint)' : 'var(--border)'}` }}>{s.glyph}</div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (model.kind === 'memory-flash') {
+    const storyboard = ['Ready', `Exposure ${(model.exposureMs / 1000).toFixed(1)}s`, `Interval ${model.intervalMs}ms`, 'Selection'];
+    return (
+      <div>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+          {storyboard.map((s) => <span key={s} className="pill" style={{ background: 'var(--surface-raised)', color: 'var(--violet)' }}>{s}</span>)}
+        </div>
+        <div className="kpi-label">Remember{model.orderMatters ? ' (in order)' : ''}: {model.targets.join(' ')}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${model.columns}, 1fr)`, gap: 4, marginTop: 6 }}>
+          {model.board.map((t, i) => (
+            <div key={i} style={{ aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, borderRadius: 6, background: t.target ? 'rgba(94,231,195,0.18)' : 'var(--surface-raised)', border: `1px solid ${t.target ? 'var(--mint)' : 'var(--border)'}` }}>{t.glyph}</div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // classification
   return (
-    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-      {model.terms.map((t, i) => {
-        const wrong = model.wrongIndex === i;
-        return (
-          <div key={i} style={{ minWidth: 40, padding: '10px 12px', textAlign: 'center', borderRadius: 8, background: wrong ? 'rgba(242,116,140,0.18)' : 'var(--surface-raised)', border: `1px solid ${wrong ? 'var(--danger)' : 'var(--border)'}`, fontWeight: 700 }}>{t}{wrong ? ' ✕' : ''}</div>
-        );
-      })}
+    <div>
+      <p style={{ fontWeight: 600 }}>{model.rule}</p>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+        <span className="pill" style={{ background: 'var(--surface-raised)', color: 'var(--mint)' }}>◀ {model.buckets[0]}</span>
+        <span className="pill" style={{ background: 'var(--surface-raised)', color: 'var(--gold)' }}>{model.buckets[1]} ▶</span>
+        <span className="faint">· {(model.durationMs / 1000).toFixed(1)}s</span>
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+        {model.items.map((it, i) => (
+          <div key={i} title={it.bucket !== undefined ? model.buckets[it.bucket] : undefined}
+            style={{ width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, borderRadius: 6, background: 'var(--surface-raised)', border: `1px solid ${it.bucket === undefined ? 'var(--border)' : it.bucket === 0 ? 'var(--mint)' : 'var(--gold)'}` }}>{it.glyph}</div>
+        ))}
+      </div>
     </div>
   );
 }

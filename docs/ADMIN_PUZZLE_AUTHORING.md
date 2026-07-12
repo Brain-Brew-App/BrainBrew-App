@@ -69,7 +69,36 @@ groups via shared primitives (`FormPrimitives.tsx`); a single generic preview
 per-engine form component and no giant switch** — the remaining nine engines are
 added as data.
 
-Live this checkpoint: **OBS_001, OBS_003, OBS_004, PAT_001, PAT_002, PAT_003**.
+**All 15 active engines** are authorable through this one workflow (7H.3.2A shipped
+Observation + Pattern; 7H.3.2B completed Logic, Language Logic, Attention Speed):
+OBS_001/003/004, PAT_001/002/003, LOG_001/002/003, LNG_001/002/003, ATT_001/002/003.
+
+- **Curated-scenario engines** (Deduction, Ordering, Analogy, Odd Word Out, Sentence
+  Ordering) are index selectors into the canonical tables, surfaced as **answer-free**
+  `{value,label}` options via `AUTHORING_VOCAB.scenarioOptions` — the full tables (with
+  answers) stay in the server bundle. Odd Word Out / Ordering / Sentence Ordering can't
+  author a wrong answer: correctness is guaranteed by the curated scenario + derivation.
+- **Balance Scales** assembles a canonical `weights/scales/query` seed from an approved
+  weighting template (A/B/C/D) + integer parameters; the balancing and unique-ratio
+  proof stay in the canonical builder/validator.
+- **Attention Speed** engines share timed-task controls (duration/grid/count) and render
+  **static storyboards** (Symbol Sweep grid, Memory Flash ready→exposure→interval→
+  selection, Rapid Classification stream + buckets) — no real timed/ranked attempt, no
+  token, no analytics.
+- **Sentence Ordering** shows a persistent "Human review is mandatory" warning — the
+  deterministic validator cannot rule out all linguistic arguability.
+
+Proven by `npm run test:authoring-forms` (**323 checks**): registry + cross-engine
+completeness (all 15, unique ids, category grouping, versions, notes, no score-formula
+field), every default builds+validates clean, form↔seed round-trips, client rejects,
+the canonical validator catches each engine's invalid mutation, and previews reveal no
+answer without an authorized overlay.
+
+**Submit for review (7H.3.2B).** A generic action exposes the tested 7H.2
+`admin_submit_draft_review` backend: it requires a passing validation (status `built`),
+a matching content hash (guards a stale/unsaved edit), required author notes, and audits
+the transition to `awaiting_review`. The reviewer workbench remains the next
+content-operations checkpoint.
 
 **Security boundary.** All schema functions and the canonical bundle stay
 server-side. The client sends raw form values to `authorFromFormAction`, which

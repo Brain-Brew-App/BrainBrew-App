@@ -76,6 +76,53 @@ export type PreviewModel =
       kind: 'chip-repair';
       terms: string[];
       wrongIndex?: number;
+    }
+  // Deduction / Analogy / Odd Word Out — context lines above a set of options.
+  | {
+      kind: 'labeled-options';
+      contextLines: string[];
+      options: { id: string; label: string; correct?: boolean }[];
+    }
+  // Ordering / Sentence Ordering — a pool of items + optional clues; order gated.
+  | {
+      kind: 'ordering';
+      items: { id: string; label: string }[];
+      clues: string[];
+      correctOrder?: string[];
+      note?: string;
+    }
+  // Balance Scales — drawn scales + the query + numeric options.
+  | {
+      kind: 'balance';
+      scales: { left: string[]; right: string[] }[];
+      query: { subject: string; unit: string };
+      options: { id: string; label: string; correct?: boolean }[];
+    }
+  // Symbol Sweep — a timed grid; target highlight only when authorized.
+  | {
+      kind: 'symbol-grid';
+      columns: number;
+      symbols: { glyph: string; target?: boolean }[];
+      targetGlyph: string;
+      durationMs: number;
+    }
+  // Memory Flash — a storyboard (ready → exposure → interval → selection).
+  | {
+      kind: 'memory-flash';
+      columns: number;
+      board: { glyph: string; target?: boolean }[];
+      targets: string[];
+      exposureMs: number;
+      intervalMs: number;
+      orderMatters: boolean;
+    }
+  // Rapid Classification — a stream + two buckets; per-item bucket gated.
+  | {
+      kind: 'classification';
+      rule: string;
+      buckets: [string, string];
+      items: { glyph: string; bucket?: number }[];
+      durationMs: number;
     };
 
 /** Result of the client-side usability pre-check (the SERVER remains authoritative). */

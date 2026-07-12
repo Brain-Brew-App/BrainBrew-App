@@ -11,7 +11,7 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import type { FieldGroup } from '@/lib/authoring/engines/types';
-import { authorFromFormAction, saveDraftAction, type AuthorResult } from './actions';
+import { authorFromFormAction, saveDraftAction, submitDraftForReviewAction, type AuthorResult } from './actions';
 import { Field, ValidationSummary, BuildStatusPanel, UnsavedBadge } from './FormPrimitives';
 import { Preview } from './Preview';
 
@@ -34,12 +34,17 @@ export function AuthoringForm({ spec }: { spec: FormSpec }) {
   const [reveal, setReveal] = useState(false);
   const [result, setResult] = useState<AuthorResult | null>(null);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
+  const [saved, setSaved] = useState<{ draftId: string; contentHash: string } | null>(null);
+  const [notes, setNotes] = useState('');
+  const [submitMsg, setSubmitMsg] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
   const onChange = (key: string, value: unknown) => {
     setForm((f) => ({ ...f, [key]: value }));
     setDirty(true);
     setSaveMsg(null);
+    setSaved(null);
+    setSubmitMsg(null);
   };
 
   const build = () => start(async () => {
@@ -52,7 +57,14 @@ export function AuthoringForm({ spec }: { spec: FormSpec }) {
   const save = () => start(async () => {
     const r = await saveDraftAction(spec.engineId, form);
     setSaveMsg(r.ok ? `Draft saved (${r.draftId}). Build/validation persisted.` : `Save failed: ${r.error}`);
-    if (r.ok) setDirty(false);
+    if (r.ok && r.draftId && r.contentHash) { setDirty(false); setSaved({ draftId: r.draftId, contentHash: r.contentHash }); }
+  });
+
+  const submit = () => start(async () => {
+    if (!saved) return;
+    const r = await submitDraftForReviewAction(saved.draftId, saved.contentHash, notes);
+    setSubmitMsg(r.ok ? 'Submitted for review — status is now awaiting_review.' : `Submit failed: ${r.error}`);
+    if (r.ok) setSaved(null);
   });
 
   const fieldErrors = result?.clientCheck.fieldErrors ?? {};
@@ -104,6 +116,17 @@ export function AuthoringForm({ spec }: { spec: FormSpec }) {
         </div>
 
         {saveMsg && <div className={`banner${saveMsg.startsWith('Draft saved') ? '' : ' danger'}`}>{saveMsg}</div>}
+
+        {saved && (
+          <div className="card" style={{ borderColor: 'var(--border-hi)' }}>
+            <div className="kpi-label" style={{ marginBottom: 6 }}>Submit for review (two-person control)</div>
+            <p className="faint" style={{ marginTop: 0 }}>A different qualified reviewer approves; you cannot approve your own candidate. Notes are required and audited.</p>
+            <label style={{ fontSize: 12, color: 'var(--text-muted)' }} htmlFor="review-notes">Author notes *</label>
+            <textarea id="review-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} style={{ width: '100%', minHeight: 44, marginTop: 4 }} placeholder="What should the reviewer know?" />
+            <button type="button" onClick={submit} disabled={pending || notes.trim().length < 3} style={{ minHeight: 44, marginTop: 8 }}>Submit draft {saved.draftId} for review</button>
+          </div>
+        )}
+        {submitMsg && <div className={`banner${submitMsg.startsWith('Submitted') ? '' : ' danger'}`}>{submitMsg}</div>}
 
         <div className="card">
           <div className="kpi-label" style={{ marginBottom: 6 }}>Accessibility & small screen</div>
