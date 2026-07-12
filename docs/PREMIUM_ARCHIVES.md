@@ -65,6 +65,37 @@ calendar/pack reads (no answers, past-only), unranked isolation, resume, fairnes
 invariant, and the Part-N/R mutation tests. No regressions in entitlement/revenuecat/
 practice/ranked/progress suites.
 
+## Client correctness core (7J.4 — pure, tested)
+Built + tested (`npm run test:premium-archive`, 36 checks), device-independent:
+- **Premium state machine** (`src/cloud/revenuecat/premiumMachine.ts`) — explicit
+  states (idle/loading_entitlement/loading_offering/ready_free/ready_premium/
+  purchasing/cancelled/finalizing/restoring/nothing_to_restore/sync_delayed/
+  conflict/store_unavailable/unsupported_platform/network_error/error). Invariants:
+  an SDK "purchased" result goes to **finalizing**, NOT premium — only a server
+  `SYNC_CONFIRMED` flips to `ready_premium` (`premiumUnlocked()` is the only Archives
+  gate); **cancellation is neutral**; **single-flight** (duplicate taps collapse);
+  **account switch / sign-out hard-reset** so User B never inherits User A.
+- **Bounded server-sync-wait** (`serverSync.ts`) — backoff schedule + `decideSync`
+  (confirmed/continue/timeout); a delayed webhook surfaces `sync_delayed` with Retry
+  Sync / Restore, never "purchase failed"; safe diagnostic ref (no provider id).
+- **Archive client validation** (`src/cloud/archive/archiveValidate.ts`) — validates
+  calendar (past-only), pack (fixed category order, void-aware denominator), and the
+  start response (unranked, no client score), plus a **recursive forbidden-field
+  guard** (`assertNoForbiddenFields`: correct_answer/seed/receipt/purchase_token/
+  provider_customer_id/answer keys/etc.) so an answer or provider secret can never
+  render even if the server regressed.
+
+## Build runbook (Android development build — after RC/Play config)
+```
+eas login && eas whoami
+# RC public Android key + Supabase public vars via EAS env (never committed):
+eas env:create --environment development --name EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY --value <key>
+eas build --profile development --platform android      # → install AAB/APK on the S21+
+npm run start                                            # dev-client Metro
+```
+The public SDK key never enters committed source; local mode never initializes
+RevenueCat; RevenueCat configures only after the verified Auth UUID exists.
+
 ## Not yet built (Founder-device-gated or later checkpoint)
 The Archives **app UI** (calendar/locked/session/results screens), the client
 purchase/restore/server-sync hardening states, and Test-Store / Google-Play sandbox

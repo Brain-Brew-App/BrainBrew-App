@@ -94,6 +94,7 @@
     "db:revisions-test": "node scripts/db/revisions-test.mjs",
     "db:archives-test": "node scripts/db/archives-test.mjs",
     "revenuecat:config-check": "node scripts/revenuecat-config-check.mjs",
+    "test:premium-archive": "node scripts/premium-archive-client-test.mjs",
     "test:failure-injection": "node scripts/failure-injection-safety-test.mjs",
     "test:canonical-authoring": "node scripts/canonical-authoring-test.mjs",
     "authoring:bundle": "node scripts/build-authoring-bundle.mjs",
