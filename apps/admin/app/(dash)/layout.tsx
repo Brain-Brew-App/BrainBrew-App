@@ -15,6 +15,7 @@ const GROUPS: { title: string; items: { href: string; label: string; cap: string
   { title: 'Content', items: [
     { href: '/puzzles', label: 'Puzzles', cap: 'view_puzzles' },
     { href: '/packs', label: 'Daily Packs', cap: 'view_packs' },
+    { href: '/content/authoring', label: 'Authoring', cap: 'manage_content' },
     { href: '/content', label: 'Content Review', cap: 'view_content' },
   ]},
   { title: 'Business', items: [

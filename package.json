@@ -89,7 +89,8 @@
     "test:canonical-authoring": "node scripts/canonical-authoring-test.mjs",
     "authoring:bundle": "node scripts/build-authoring-bundle.mjs",
     "authoring:bundle:check": "node scripts/build-authoring-bundle.mjs --check",
-    "test:authoring-boundary": "node scripts/authoring-boundary-test.mjs"
+    "test:authoring-boundary": "node scripts/authoring-boundary-test.mjs",
+    "test:authoring-forms": "node scripts/authoring-engine-forms-test.mjs"
   },
   "private": true
 }

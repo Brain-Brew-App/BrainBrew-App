@@ -18,6 +18,30 @@ var GLYPH_FAMILIES = {
   quarters: ["\u25D4", "\u25D5", "\u25F7", "\u25F6"]
 };
 var SWEEP_GLYPHS = ["\u25CF", "\u25CB", "\u25A0", "\u25A1", "\u25B2", "\u25B3", "\u25BC", "\u25BD", "\u25C6", "\u25C7"];
+var PAIR_GLYPHS = [
+  "\u25CF",
+  "\u25CB",
+  "\u25A0",
+  "\u25A1",
+  "\u25B2",
+  "\u25B3",
+  "\u25BC",
+  "\u25BD",
+  "\u25C6",
+  "\u25C7",
+  "\u25D0",
+  "\u25D1",
+  "\u25D2",
+  "\u25D3",
+  "\u2295",
+  "\u2297",
+  "\u2299",
+  "\u2298",
+  "\u25E4",
+  "\u25E5",
+  "\u25E3",
+  "\u25E2"
+];
 var CURVED = /* @__PURE__ */ new Set(["\u25CF", "\u25CB"]);
 var FILLED = /* @__PURE__ */ new Set(["\u25CF", "\u25A0", "\u25B2", "\u25BC", "\u25C6"]);
 var POINTS_UP = /* @__PURE__ */ new Set(["\u25B2", "\u25B3"]);
@@ -1582,6 +1606,22 @@ var ENGINE_SPLIT = {
 };
 
 // src/content/authoringBoundary.ts
+var AUTHORING_VOCAB = {
+  glyphFamilies: GLYPH_FAMILIES,
+  pairGlyphs: PAIR_GLYPHS,
+  sweepGlyphs: SWEEP_GLYPHS,
+  sequenceFamilies: [
+    "arithmetic",
+    "geometric",
+    "divide",
+    "squares",
+    "triangular",
+    "oblong",
+    "fibonacci",
+    "alternating"
+  ],
+  matrixRules: ["rowConstant", "colConstant", "latin"]
+};
 var BUILDER_FNS = {
   oddOneOut,
   rotationMatch,
@@ -1679,6 +1719,7 @@ function buildCandidate(engineId, seed) {
   };
 }
 export {
+  AUTHORING_VOCAB,
   BUILDERS,
   ENGINE_IDS,
   ENGINE_REGISTRY,

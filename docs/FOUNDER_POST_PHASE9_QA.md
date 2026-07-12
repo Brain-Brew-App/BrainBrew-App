@@ -44,6 +44,17 @@ Evidence required.**
 - [ ] Delete unused draft (reauth + typed confirm); used denied · Puzzle detail · test draft · delete · works only for eligible draft · **High**.
 - [ ] **Authoring UI (create → build → validate → preview → review → approve → reserve)** · Authoring · Content/Founder · author a test puzzle · canonical build+validate; two-person approval · **High** · *canonical build/validate boundary live/tested (7H.3.1); 15-engine forms + preview UI still to build (7H.3.2–3).*
 
+## Admin — Observation & Pattern authoring forms (7H.3.2A; automated done, visual/usability deferred)
+Route base: `/content/authoring` → `/content/authoring/new/{engineId}`. Use **test** ids only; never a canonical production puzzle id.
+- [ ] Each of the 6 forms (OBS_001, OBS_003, OBS_004, PAT_001, PAT_002, PAT_003) renders its field groups; Build & validate shows the validation summary; preview renders at **320dp and 390dp** · Content/Founder · open each engine, keep defaults, Build · passed + preview appears · **High** · screenshot per engine at both widths.
+- [ ] Glyph pickers offer only approved glyphs; render risk legible on device (halfCircles/cornerTriangles/etc.) · OBS_001/OBS_004 · pick glyphs · shapes render as shapes, not emoji · **High** · device photo (iOS + Android).
+- [ ] Invalid input shows an inline field error and a failing validation summary blocks Save · any form · e.g. OBS_001 oddIndex=0, PAT_002 all-row-constant · Save disabled; clear message · **High** · screenshot.
+- [ ] Answer overlay: hidden for a non-reviewer; visible (with explanation) only after ticking Reveal as a reviewer with recent sign-in · preview · Content vs Viewer · reveal · gated + audited · **High**.
+- [ ] Save draft persists (draft id shown) then appears in the 7H.2 authoring queue; a failing build cannot be saved · form · Content · Build → Save · draft row created · **High** · audit + row.
+- [ ] Unsaved-changes badge appears on edit and clears after Build/Save · form · Content · edit a field · badge toggles · Med.
+- [ ] Keyboard-only operation of every control (selects, glyph radio/checkbox grids, difficulty segmented, buttons); focus visible; ≥44–48px targets · all forms · keyboard + screen reader · usable · Med · a11y notes.
+- [ ] Tablet/wide layout: two-column form/preview does not overflow; 320dp preview never causes body horizontal scroll · all forms · resize · clean · Med.
+
 ## Admin — authoring canonical boundary (7H.3.1, automated; human spot-check deferred)
 - [ ] Build a candidate for each of the 15 engines through the form → `buildCandidateAction`; validation findings render clearly; a failing build shows a safe error, never a partial save · Authoring · Content/Founder · *forms not yet built; boundary + action live/tested by `test:authoring-boundary`.* · **High** · screenshots per engine.
 - [ ] Answer overlay appears only for reviewer roles with recent auth; hidden otherwise · Authoring preview · Content vs Viewer · reveal answer · gated + audited · **High**.

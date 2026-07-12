@@ -43,6 +43,22 @@ import {
 import { ENGINE_REGISTRY } from './engines';
 import { validatePuzzle } from './validators';
 import { ALWAYS_PRIVATE_FIELDS, ENGINE_SPLIT } from '../infrastructure/supabase/publicFields';
+import { GLYPH_FAMILIES, PAIR_GLYPHS, SWEEP_GLYPHS } from './lexicon';
+
+/**
+ * The curated authoring vocabularies, surfaced for the Admin forms so they offer
+ * ONLY approved inputs — no free Unicode entry, no drift from the canonical
+ * ontology. A model/author may CHOOSE from these; never ADD to them.
+ */
+export const AUTHORING_VOCAB = {
+  glyphFamilies: GLYPH_FAMILIES as Record<string, readonly string[]>,
+  pairGlyphs: PAIR_GLYPHS as readonly string[],
+  sweepGlyphs: SWEEP_GLYPHS as readonly string[],
+  sequenceFamilies: [
+    'arithmetic', 'geometric', 'divide', 'squares', 'triangular', 'oblong', 'fibonacci', 'alternating',
+  ] as const,
+  matrixRules: ['rowConstant', 'colConstant', 'latin'] as const,
+} as const;
 
 /** The 15 canonical builders, keyed by engine id (via the registry's builderId). */
 const BUILDER_FNS: Record<string, (seed: any) => Puzzle> = {

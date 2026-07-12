@@ -33,6 +33,13 @@ export interface EngineRegistryEntry {
   validatorId: string;
 }
 
+export const AUTHORING_VOCAB: {
+  glyphFamilies: Record<string, readonly string[]>;
+  pairGlyphs: readonly string[];
+  sweepGlyphs: readonly string[];
+  sequenceFamilies: readonly string[];
+  matrixRules: readonly string[];
+};
 export const ENGINE_IDS: string[];
 export const ENGINE_REGISTRY: EngineRegistryEntry[];
 export const BUILDERS: Record<string, (seed: unknown) => Record<string, unknown>>;

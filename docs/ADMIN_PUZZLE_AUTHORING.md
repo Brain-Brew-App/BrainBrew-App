@@ -57,6 +57,40 @@ changes_requested → promoted`. Server-controlled RPCs (no arbitrary status dro
 All service-role only; client roles denied (tested). Answer payloads are never
 returned to unauthorized roles.
 
+## 3a. Registry-driven forms + safe previews (Phase 7H.3.2A — Observation + Pattern)
+
+The authoring UI is **registry-driven**: each engine contributes a pure
+`EngineFormSchema` (`apps/admin/lib/authoring/engines/`) — `fieldGroups`,
+`defaultForm`, `serializeFormToSeed`/`deserializeSeedToForm`, `clientValidate`,
+`previewAdapter`, help/accessibility/small-screen notes, and approved input sources.
+A single generic form (`AuthoringForm.tsx`) renders any engine from its field
+groups via shared primitives (`FormPrimitives.tsx`); a single generic preview
+(`Preview.tsx`) renders a sanitized `PreviewModel` at 320dp and 390dp. There is **no
+per-engine form component and no giant switch** — the remaining nine engines are
+added as data.
+
+Live this checkpoint: **OBS_001, OBS_003, OBS_004, PAT_001, PAT_002, PAT_003**.
+
+**Security boundary.** All schema functions and the canonical bundle stay
+server-side. The client sends raw form values to `authorFromFormAction`, which
+serializes → builds/validates canonically → returns a sanitized `PreviewModel`. The
+answer overlay is included **only** for a `review_content` role with recent auth and
+an explicit request. Verified: no `buildCandidate`/`validatePuzzle`/`serializeFormToSeed`/
+answer code appears in any client chunk; the form route ships ~4 kB of client JS.
+
+**Approved inputs only.** Glyph pickers draw from the canonical `AUTHORING_VOCAB`
+(re-exported through the boundary — no drift, no free Unicode). Sequence families,
+matrix rules and repair-family restrictions come from the same source.
+
+**Proven by `npm run test:authoring-forms` (89 checks):** every engine's default
+form builds + validates clean; form↔seed round-trips are stable; unknown/missing/
+out-of-range fields are rejected; the canonical validator catches every specified
+invalid mutation (two-odd-tiles, cell-count leak, symmetric/disconnected target,
+same-row/column/adjacent pair, distractor collisions, constant attribute, two valid
+options, multi-attribute distractor, no-repair, term-count, chip width…); preview
+adapters accept valid payloads, reject malformed ones, and reveal no correct/
+highlight without an answer.
+
 ## 4. Implemented vs the authoring-UI milestone
 
 **Implemented + deployed now:** the draft model, the full review/approval state
