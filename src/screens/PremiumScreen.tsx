@@ -5,7 +5,7 @@ import { BrewMark, Wordmark } from '../components/brand/BrewMark';
 import { Button } from '../components/Button';
 import { Screen } from '../components/Screen';
 import { PREMIUM_PREVIEW, RANKED_FAIRNESS_PROMISE } from '../cloud/entitlements';
-import { usePremium } from '../cloud/revenuecat/usePremium';
+import { usePremiumController } from '../cloud/revenuecat/usePremiumController';
 import type { ValidEntitlements } from '../cloud/validate';
 import { colors, MIN_TAP_TARGET, radius, shadow, spacing, typography } from '../theme/theme';
 
@@ -15,6 +15,8 @@ interface PremiumScreenProps {
   onBack: () => void;
   /** Open Premium Archives — the first real Premium feature (7J). */
   onOpenArchives?: () => void;
+  /** The verified Supabase Auth UUID — keys RevenueCat identity + all caches. */
+  authUserId?: string | null;
 }
 
 const planLabel = (plan: string) => (plan === 'monthly' ? 'Monthly' : plan === 'annual' ? 'Annual' : 'Plan');
@@ -26,9 +28,35 @@ const planLabel = (plan: string) => (plan === 'monthly' ? 'Monthly' : plan === '
  * Practice; the store flow is exercised without blocking anyone. No fake prices,
  * no dark patterns, purchasing waits for server-synchronized entitlement.
  */
-export function PremiumScreen({ entitlements, onBack, onOpenArchives }: PremiumScreenProps) {
-  const p = usePremium(true);
-  const ent = p.entitlement ?? entitlements;
+export function PremiumScreen({ entitlements, onBack, onOpenArchives, authUserId = null }: PremiumScreenProps) {
+  const c = usePremiumController(true, authUserId);
+  const ent = c.entitlement ?? entitlements;
+
+  // Adapter over the state machine. Premium is NEVER unlocked by an SDK result —
+  // only `ready_premium` (server-confirmed) counts. Cancellation is neutral copy.
+  const busyStates = ['purchasing', 'restoring', 'finalizing'];
+  const p = {
+    supported: c.supported,
+    unavailableReason: c.offeringError,
+    offering: c.offering,
+    entitlement: c.entitlement,
+    busy: busyStates.includes(c.state),
+    finalizing: c.state === 'finalizing',
+    purchase: (plan: 'monthly' | 'annual' | 'other') => { if (plan !== 'other') c.purchase(plan); },
+    restore: c.restore,
+    message: ((): string | null => {
+      switch (c.state) {
+        case 'cancelled': return 'Purchase cancelled — nothing was charged.';
+        case 'nothing_to_restore': return 'No previous purchase was found on this store account.';
+        case 'conflict': return 'That purchase belongs to a different BrainBrew account. Sign in with that account, or contact support — we never merge accounts automatically.';
+        case 'store_unavailable': return 'The store is unavailable right now. Please try again shortly.';
+        case 'network_error': return 'We couldn’t reach the server. Check your connection and try again.';
+        case 'error': return 'Something went wrong. Please try again.';
+        default: return null;
+      }
+    })(),
+  };
+  const syncDelayed = c.state === 'sync_delayed';
   const state = ent?.entitlementState ?? 'beta';
   const betaOpen = (ent?.policyMode ?? 'beta_open') === 'beta_open';
   const isPremium = ['premium', 'grace_period', 'billing_issue'].includes(state);
@@ -80,7 +108,7 @@ export function PremiumScreen({ entitlements, onBack, onOpenArchives }: PremiumS
                 <Pressable
                   key={pkg.packageId}
                   style={({ pressed }) => [styles.planRow, pressed && styles.planRowPressed]}
-                  onPress={() => p.purchase(pkg.packageId)}
+                  onPress={() => p.purchase(pkg.plan)}
                   disabled={p.busy}
                   accessibilityRole="button"
                   accessibilityLabel={`Subscribe ${planLabel(pkg.plan)} for ${pkg.priceString}`}
@@ -115,12 +143,38 @@ export function PremiumScreen({ entitlements, onBack, onOpenArchives }: PremiumS
           </AnimatedMount>
         )}
 
+        {/* Archives — the first real Premium feature. Server-confirmed Premium only. */}
+        {isPremium && onOpenArchives && (
+          <AnimatedMount distance={12} delay={90}>
+            <View style={styles.purchaseCard}>
+              <Text style={styles.listHeading}>Archives</Text>
+              <Text style={styles.renewNote}>Replay any past Daily Brew. Archive Brews are always unranked.</Text>
+              <Button label="Open Archives" onPress={onOpenArchives} />
+            </View>
+          </AnimatedMount>
+        )}
+
         {(p.busy || p.finalizing || p.message) && (
           <View style={styles.statusRow}>
             {(p.busy || p.finalizing) && <ActivityIndicator color={colors.mint} />}
             {p.finalizing && <Text style={styles.finalizing}>Finalizing access…</Text>}
             {p.message && <Text style={styles.message}>{p.message}</Text>}
           </View>
+        )}
+
+        {/* A delayed webhook is NEVER a failed purchase — offer safe recovery. */}
+        {syncDelayed && (
+          <AnimatedMount distance={12}>
+            <View style={styles.unavailableCard}>
+              <Text style={styles.unavailableText}>
+                Your purchase was received, but access is still being finalized. You have not been charged twice —
+                do not buy again.
+              </Text>
+              <Button label="Retry sync" onPress={c.retrySync} />
+              <Button label="Restore purchases" variant="secondary" onPress={c.restore} />
+              {c.diagnosticRef && <Text style={styles.message}>Support reference: {c.diagnosticRef}</Text>}
+            </View>
+          </AnimatedMount>
         )}
 
         <AnimatedMount distance={12} delay={140}>

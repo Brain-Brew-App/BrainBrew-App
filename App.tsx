@@ -142,7 +142,14 @@ export default function App() {
         );
       }
       if (showPremium) {
-        return <PremiumScreen entitlements={entitlements.entitlements} onBack={() => setShowPremium(false)} onOpenArchives={() => { setShowPremium(false); setShowArchives(true); }} />;
+        return (
+          <PremiumScreen
+            entitlements={entitlements.entitlements}
+            authUserId={identity.profile?.id ?? null}
+            onBack={() => setShowPremium(false)}
+            onOpenArchives={() => { setShowPremium(false); setShowArchives(true); }}
+          />
+        );
       }
       if (showSecure) {
         return (
