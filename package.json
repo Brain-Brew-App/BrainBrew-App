@@ -87,6 +87,7 @@
     "db:content-mutations-test": "node scripts/db/content-mutations-test.mjs",
     "db:authoring-test": "node scripts/db/content-authoring-test.mjs",
     "db:pack-drafts-test": "node scripts/db/pack-drafts-test.mjs",
+    "db:incident-void-test": "node scripts/db/incident-void-test.mjs",
     "test:canonical-authoring": "node scripts/canonical-authoring-test.mjs",
     "authoring:bundle": "node scripts/build-authoring-bundle.mjs",
     "authoring:bundle:check": "node scripts/build-authoring-bundle.mjs --check",

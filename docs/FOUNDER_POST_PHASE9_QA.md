@@ -84,7 +84,8 @@ Route base: `/content/authoring/new/{engineId}`. Test ids only.
 - [ ] Draft pack create → fill five slots → validate → submit → approve → publish to an **isolated future test date**; confirm canonical live pack + 5 slots; duplicate-date blocked; live mutation blocked · Packs · Founder/Content · *backend tested (`db:pack-drafts-test` 42); pack editor + scheduler UI is the next checkpoint.* · **High** · screenshots once UI exists.
 - [ ] Scheduler-assisted suggestion quality, slot replacement UX, constraint/warning explanations, difficulty-balance readability · Pack editor · *UI deferred.* · Med.
 - [ ] Publication confirmation copy (future date, reason, typed confirm, recent-auth) + future-correction messaging (cancel + republish) · Pack publish · *UI deferred.* · High.
-- [ ] Incident void: open incident from a live/historical slot, void without substitution, recalculation progress, leaderboard/progress correction, retry UX · Incidents · Founder · *void/recalc backend exists (ranked); incident-void UI deferred.* · **High**.
+- [ ] Incident void (7I.2C — live): from `/incidents/void` open a live-slot review → open incident → type **VOID SLOT** (recent auth) → void → operation progress page shows denominator/score correction; continue/retry recovery · Incidents · Founder · run against an **isolated historical fixture** · scores normalize, leaderboard/progress correct, share cards frozen · **High** · backend tested (`db:incident-void-test` 29); UI copy/impact-numbers need a human read.
+- [ ] Void impact numbers (affected count, original→new denominator) read correctly on the review screen for a real fixture · `/incidents/void/{slotId}` · Founder · Med.
 
 ## Admin — support / exports / health / maintenance / incidents / audit
 - [ ] User Support lookup (safe fields); mark test subject audited · Support · Founder/Support · search · no PII beyond policy · Med.

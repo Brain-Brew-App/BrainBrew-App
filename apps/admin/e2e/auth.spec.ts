@@ -14,7 +14,9 @@ const PROTECTED = [
   '/', '/content/authoring', '/content/authoring/queue',
   '/content/authoring/new/OBS_001', '/content/authoring/draft/00000000-0000-0000-0000-000000000000',
   '/packs', '/packs/authoring', '/packs/authoring/00000000-0000-0000-0000-000000000000',
-  '/incidents', '/audit', '/support', '/health', '/maintenance', '/revenue',
+  '/incidents', '/incidents/void', '/incidents/void/00000000-0000-0000-0000-000000000000',
+  '/incidents/void/op/00000000-0000-0000-0000-000000000000',
+  '/audit', '/support', '/health', '/maintenance', '/revenue',
 ];
 
 for (const path of PROTECTED) {

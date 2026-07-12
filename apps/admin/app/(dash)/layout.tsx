@@ -32,6 +32,7 @@ const GROUPS: { title: string; items: { href: string; label: string; cap: string
     { href: '/health', label: 'System Health', cap: 'view_health' },
     { href: '/maintenance', label: 'Maintenance', cap: 'set_maintenance', danger: true },
     { href: '/incidents', label: 'Incidents', cap: 'view_incidents' },
+    { href: '/incidents/void', label: 'Content Void', cap: 'view_incidents' },
     { href: '/audit', label: 'Audit Log', cap: 'view_overview' },
   ]},
 ];
