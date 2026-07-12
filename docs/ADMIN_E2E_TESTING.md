@@ -1,0 +1,33 @@
+# Admin E2E & Failure-Injection Testing (Phase 7H)
+
+## Current automated coverage
+- **RBAC parity** (`db:rbac-parity-test`) — the in-process TS matrix equals the DB
+  `admin_can` across all 328 role×capability pairs (the perf optimization can't
+  weaken security).
+- **Admin DB security** (`db:admin-test`, 56 checks) — identity/role resolution,
+  audit immutability, maintenance enforcement, KPI formulas, and **client-role
+  denial on every admin + content + support RPC**.
+- **Analytics** (`db:analytics-test`, 27) — ingestion/exclusion/rollups/retention/
+  funnel + client denial.
+- **Type + build** — root `tsc`, admin `tsc`, admin `next build` (22 routes).
+- **Live smoke** — deployed RPCs OK, publishable-role denied, bundle secret scan 0.
+
+## Role matrix (enforced server-side; verified at the DB layer)
+Founder = all · Engineering = health/incidents/maintenance, no revenue · Finance =
+revenue/reports, no health mutation/answers · Content = puzzles/packs/review, no
+admin/revenue · Support = user lookup, no answers/payment/maintenance · Viewer =
+aggregates only, no PII/mutations. Direct-URL access is denied by `requireCapability`
+independent of nav hiding.
+
+## Failure injection
+Health checks are read-only synthetic probes (DB read, KPI RPC, live-pack presence,
+webhook errors, operational mode). A production build never activates a failure
+state via a query parameter. A test-only fixture layer (env-gated, non-production)
+is the recommended next step to assert the Health page flips to FAIL + surfaces
+incident guidance without touching production services.
+
+## Deferred (recommended next)
+A browser **Playwright** suite driving a preview deployment per role (hidden nav,
+Server-Action denial, error/empty/loading states, tablet shell). Not yet added;
+the DB-level RBAC/parity + build/type checks are the current security proof. No
+production accounts are used in any automated test.

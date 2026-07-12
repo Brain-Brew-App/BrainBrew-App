@@ -76,3 +76,11 @@ Grant/disable roles ONLY via `node scripts/db/with-secrets.mjs node
 scripts/db/set-admin-role.mjs <email|uuid> <role> [--disable]` from a privileged
 shell. Audited. The person must have signed in once (so an `auth.users` row
 exists). Founder/super_admin are never grantable from the UI.
+
+## Phase 7H — analytics rollup cron
+
+`rebuild_analytics_rollups` is scheduled via **pg_cron** nightly at **00:15 UTC**
+(migration `20260724090000_analytics_cron.sql`, 2-day trailing window). Freshness is
+visible via `admin_rollup_freshness`. On-demand rebuilds remain available from the
+Gameplay page ("Refresh rollups", audited). Project restart remains **disabled / not
+certified** (unchanged).

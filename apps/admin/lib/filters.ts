@@ -30,3 +30,16 @@ export function parseRange(sp: Record<string, string | string[] | undefined>): D
   if (toMs - fromMs > 400 * DAY) fromMs = toMs - 400 * DAY;
   return { from: iso(fromMs), to: iso(toMs), days: Math.round((toMs - fromMs) / DAY) + 1 };
 }
+
+/** Parse a 1-based `?page=` into a bounded { limit, offset, page }. */
+export function parsePage(sp: Record<string, string | string[] | undefined>, limit = 25): { limit: number; offset: number; page: number } {
+  const raw = typeof sp.page === 'string' ? parseInt(sp.page, 10) : 1;
+  const page = Number.isFinite(raw) && raw > 0 ? Math.min(raw, 10000) : 1;
+  return { limit, offset: (page - 1) * limit, page };
+}
+
+/** A validated single-value filter (returns undefined if not in the allowlist). */
+export function pick(sp: Record<string, string | string[] | undefined>, key: string, allow: readonly string[]): string | undefined {
+  const v = typeof sp[key] === 'string' ? (sp[key] as string) : undefined;
+  return v && allow.includes(v) ? v : undefined;
+}

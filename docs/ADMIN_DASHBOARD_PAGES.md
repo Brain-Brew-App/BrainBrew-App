@@ -45,3 +45,14 @@ CSV exports for safe aggregated datasets (executive KPI, daily users/gameplay,
 retention, subscription-state) are specified; the export buttons + server handlers
 land in the reporting build-out. Exports will never include emails, provider ids,
 UUIDs (for investor role), tokens, answers, audit IP hashes, or integrity reasons.
+
+## Phase 7H update — pages completed + performance
+
+Real (RPC-backed): **Puzzles** (+ detail with gated answer key), **Daily Packs**,
+**Content Review**, **Categories & Engines** (registry + exposure), **User Support**,
+**Reports & Exports**. Nav is grouped (Analytics/Content/Business/People/Operations)
+with active-state + role/env indicators. All large tables are server-paginated.
+Auth/RBAC was cut from ~21 network calls/navigation to 2 (request-cached context +
+in-process RBAC matrix). See [`ADMIN_PERFORMANCE.md`](ADMIN_PERFORMANCE.md),
+[`ADMIN_CONTENT_OPERATIONS.md`](ADMIN_CONTENT_OPERATIONS.md),
+[`ADMIN_USER_SUPPORT.md`](ADMIN_USER_SUPPORT.md), [`ADMIN_EXPORTS.md`](ADMIN_EXPORTS.md).

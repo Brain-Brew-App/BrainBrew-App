@@ -59,11 +59,22 @@ button { cursor: pointer; }
 button.primary { background: var(--mint); color: var(--navy); font-weight: 700; border-color: transparent; }
 button.danger { background: var(--danger); color: var(--navy); font-weight: 700; border-color: transparent; }
 button:disabled { opacity: 0.5; cursor: not-allowed; }
-.layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
-.nav { background: var(--surface); border-right: 1px solid var(--border); padding: 16px 10px; }
-.nav a { display: block; color: var(--text-muted); padding: 8px 10px; border-radius: 8px; }
-.nav a:hover { background: var(--surface-raised); color: var(--text); text-decoration: none; }
-.main { padding: 24px 28px; max-width: 1200px; }
+.layout { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+.nav { background: var(--surface); border-right: 1px solid var(--border); padding: 16px 10px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.nav-brand { padding: 0 10px 14px; font-weight: 800; }
+.nav-group { margin-bottom: 12px; }
+.nav-group-title { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-faint); padding: 4px 10px; }
+.nav-link { display: block; color: var(--text-muted); padding: 7px 10px; border-radius: 8px; font-size: 13px; }
+.nav-link:hover { background: var(--surface-raised); color: var(--text); text-decoration: none; }
+.nav-link.active { background: var(--surface-raised); color: var(--mint); font-weight: 600; box-shadow: inset 2px 0 0 var(--mint); }
+.nav-link.danger.active { color: var(--danger); box-shadow: inset 2px 0 0 var(--danger); }
+.nav-footer { margin-top: 16px; padding: 10px; border-top: 1px solid var(--border); }
+.main { padding: 24px 28px; max-width: 1240px; }
+.env-badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 1px; color: var(--gold); background: rgba(232,180,74,0.12); border: 1px solid var(--gold); border-radius: 6px; padding: 2px 8px; margin-bottom: 12px; }
 .banner { background: rgba(232,180,74,0.12); border: 1px solid var(--gold); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; color: var(--gold); }
 .banner.danger { background: rgba(242,116,140,0.12); border-color: var(--danger); color: var(--danger); }
-@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .nav { display: flex; flex-wrap: wrap; } }
+/* Panel skeletons (streamed loading states preserve layout) */
+.skeleton { background: linear-gradient(90deg, var(--surface) 25%, var(--surface-raised) 50%, var(--surface) 75%); background-size: 200% 100%; animation: shimmer 1.3s infinite; border-radius: var(--radius); }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.skeleton-card { height: 84px; }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .nav { position: static; height: auto; display: block; } .main { max-width: none; } }

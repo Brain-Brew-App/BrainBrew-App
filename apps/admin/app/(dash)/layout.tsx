@@ -1,49 +1,61 @@
-import { requireAdmin, can } from '@/lib/auth';
+import { requireAdmin, contextCan } from '@/lib/auth';
 import { adminClient } from '@/lib/supabase';
+import { Nav, type NavGroup } from '@/components/Nav';
 import { signOut } from '../login/actions';
 
-/** Nav items gated by capability. Pages not yet built are marked "planned". */
-const NAV: { href: string; label: string; cap: string; planned?: boolean }[] = [
-  { href: '/', label: 'Overview', cap: 'view_overview' },
-  { href: '/users', label: 'Users', cap: 'view_users' },
-  { href: '/retention', label: 'Retention', cap: 'view_growth' },
-  { href: '/gameplay', label: 'Gameplay', cap: 'view_gameplay' },
-  { href: '/engines', label: 'Categories & Engines', cap: 'view_engines' },
-  { href: '/puzzles', label: 'Puzzles', cap: 'view_puzzles', planned: true },
-  { href: '/packs', label: 'Daily Packs', cap: 'view_packs', planned: true },
-  { href: '/revenue', label: 'Revenue', cap: 'view_revenue' },
-  { href: '/content', label: 'Content Review', cap: 'view_content', planned: true },
-  { href: '/investor', label: 'Investor', cap: 'view_investor' },
-  { href: '/health', label: 'System Health', cap: 'view_health' },
-  { href: '/maintenance', label: 'Maintenance', cap: 'set_maintenance' },
-  { href: '/incidents', label: 'Incidents', cap: 'view_incidents' },
-  { href: '/audit', label: 'Audit Log', cap: 'view_overview' },
+// Capability-gated nav, grouped by function. Filtering is in-process (no RPC).
+const GROUPS: { title: string; items: { href: string; label: string; cap: string; planned?: boolean; danger?: boolean }[] }[] = [
+  { title: 'Analytics', items: [
+    { href: '/', label: 'Overview', cap: 'view_overview' },
+    { href: '/users', label: 'Users', cap: 'view_users' },
+    { href: '/retention', label: 'Retention', cap: 'view_growth' },
+    { href: '/gameplay', label: 'Gameplay', cap: 'view_gameplay' },
+    { href: '/engines', label: 'Categories & Engines', cap: 'view_engines' },
+  ]},
+  { title: 'Content', items: [
+    { href: '/puzzles', label: 'Puzzles', cap: 'view_puzzles' },
+    { href: '/packs', label: 'Daily Packs', cap: 'view_packs' },
+    { href: '/content', label: 'Content Review', cap: 'view_content' },
+  ]},
+  { title: 'Business', items: [
+    { href: '/revenue', label: 'Revenue', cap: 'view_revenue' },
+    { href: '/investor', label: 'Investor', cap: 'view_investor' },
+    { href: '/reports', label: 'Reports & Exports', cap: 'view_reports' },
+  ]},
+  { title: 'People', items: [
+    { href: '/support', label: 'User Support', cap: 'lookup_user' },
+  ]},
+  { title: 'Operations', items: [
+    { href: '/health', label: 'System Health', cap: 'view_health' },
+    { href: '/maintenance', label: 'Maintenance', cap: 'set_maintenance', danger: true },
+    { href: '/incidents', label: 'Incidents', cap: 'view_incidents' },
+    { href: '/audit', label: 'Audit Log', cap: 'view_overview' },
+  ]},
 ];
 
-async function activeIncidents(): Promise<number> {
-  const { data } = await adminClient().from('admin_incidents').select('id').neq('status', 'resolved');
-  return data?.length ?? 0;
-}
-
 export default async function DashLayout({ children }: { children: React.ReactNode }) {
-  const ctx = await requireAdmin();
-  const visible = (await Promise.all(NAV.map(async (n) => ((await can(ctx.role, n.cap)) ? n : null)))).filter(Boolean) as typeof NAV;
-  const incidents = await activeIncidents();
-  const status = (await adminClient().rpc('get_operational_status')).data as { mode?: string; message?: string } | null;
+  const ctx = await requireAdmin(); // cached — the page reuses this, no second lookup
+
+  // Nav filtering is synchronous (in-memory capabilities) — no RPCs.
+  const groups: NavGroup[] = GROUPS
+    .map((g) => ({ title: g.title, items: g.items.filter((n) => contextCan(ctx, n.cap)).map((n) => ({ href: n.href, label: n.label, planned: n.planned, danger: n.danger })) }))
+    .filter((g) => g.items.length > 0);
+
+  // The two banner queries run in parallel (independent).
+  const svc = adminClient();
+  const [incidentsRes, statusRes] = await Promise.all([
+    svc.from('admin_incidents').select('id', { count: 'exact', head: true }).neq('status', 'resolved'),
+    svc.rpc('get_operational_status'),
+  ]);
+  const incidents = incidentsRes.count ?? 0;
+  const status = statusRes.data as { mode?: string; message?: string } | null;
+  const env = process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? 'development';
 
   return (
     <div className="layout">
-      <nav className="nav">
-        <div style={{ padding: '0 10px 12px', fontWeight: 800 }}>BrainBrew <span className="pill ok">admin</span></div>
-        {visible.map((n) => (
-          <a key={n.href} href={n.href}>{n.label}{n.planned ? <span className="faint"> · planned</span> : null}</a>
-        ))}
-        <form action={signOut} style={{ marginTop: 16, padding: '0 10px' }}>
-          <div className="faint">{ctx.email} · {ctx.role}</div>
-          <button type="submit" style={{ marginTop: 8, width: '100%' }}>Sign out</button>
-        </form>
-      </nav>
+      <Nav groups={groups} email={ctx.email} role={ctx.role} signOut={signOut} />
       <main className="main">
+        {env !== 'production' && <div className="env-badge">{env.toUpperCase()} · non-production</div>}
         {status?.mode && status.mode !== 'normal' && (
           <div className="banner danger">⚠ App is in <b>{status.mode}</b> mode{status.message ? ` — “${status.message}”` : ''}.</div>
         )}

@@ -1381,6 +1381,11 @@ export type Database = {
         Args: { p_from: string; p_to: string }
         Returns: Json
       }
+      admin_content_queue: {
+        Args: { p_limit?: number; p_offset?: number; p_status?: string }
+        Returns: Json
+      }
+      admin_engine_registry: { Args: never; Returns: Json }
       admin_engine_stats: {
         Args: { p_from: string; p_to: string }
         Returns: Json
@@ -1406,6 +1411,20 @@ export type Database = {
         }
         Returns: number
       }
+      admin_packs: { Args: { p_from: string; p_to: string }; Returns: Json }
+      admin_puzzle_answer: { Args: { p_puzzle_id: string }; Returns: Json }
+      admin_puzzle_detail: { Args: { p_puzzle_id: string }; Returns: Json }
+      admin_puzzles: {
+        Args: {
+          p_category?: string
+          p_engine?: string
+          p_limit?: number
+          p_offset?: number
+          p_reserve?: string
+          p_status?: string
+        }
+        Returns: Json
+      }
       admin_ranked_funnel: {
         Args: { p_from: string; p_to: string }
         Returns: Json
@@ -1416,10 +1435,13 @@ export type Database = {
         Args: { p_user: string }
         Returns: Database["public"]["Enums"]["admin_role"]
       }
+      admin_rollup_freshness: { Args: never; Returns: Json }
       admin_user_daily: {
         Args: { p_from: string; p_to: string }
         Returns: Json
       }
+      admin_user_lookup: { Args: { p_query: string }; Returns: Json }
+      admin_user_profile: { Args: { p_user: string }; Returns: Json }
       analytics_event_allowed: { Args: { p_name: string }; Returns: boolean }
       analytics_excluded: { Args: { p_user: string }; Returns: boolean }
       analytics_excluded_ids: { Args: never; Returns: string[] }

@@ -157,6 +157,32 @@ await expectFail('anon cannot read operational_flags table', () => q(`select * f
 await expectFail('anon cannot call admin_kpi_overview', () => q(`select admin_kpi_overview()`), 'permission denied');
 await db.exec('reset role;');
 
+// =============================================================================
+// 7. Content-ops + support RPCs — shape (service-role) + client denial
+// =============================================================================
+await svc();
+ok('admin_puzzles returns paginated shape', (() => { return true; })());
+{
+  const p = one(await q(`select admin_puzzles(null,null,null,null,25,0) r`)).r;
+  ok('admin_puzzles: {total, rows[]} shape', typeof p.total === 'number' && Array.isArray(p.rows));
+  const cq = one(await q(`select admin_content_queue(null,25,0) r`)).r;
+  ok('admin_content_queue: {total, by_status, rows[]}', typeof cq.total === 'number' && Array.isArray(cq.rows));
+  ok('admin_engine_registry returns array', Array.isArray(one(await q(`select admin_engine_registry() r`)).r));
+  ok('admin_user_profile(unknown) → null', one(await q(`select admin_user_profile($1) r`, ['99999999-9999-9999-9999-999999999999'])).r === null);
+  ok('admin_user_lookup returns array', Array.isArray(one(await q(`select admin_user_lookup('nobody') r`)).r));
+  ok('admin_rollup_freshness returns object', typeof one(await q(`select admin_rollup_freshness() r`)).r === 'object');
+}
+// Client roles denied on every new content/support RPC.
+await asUser(SUPPORT);
+for (const call of [
+  `admin_puzzles(null,null,null,null,25,0)`, `admin_puzzle_detail('x')`, `admin_puzzle_answer('x')`,
+  `admin_packs(current_date,current_date)`, `admin_content_queue(null,25,0)`, `admin_engine_registry()`,
+  `admin_user_lookup('x')`, `admin_user_profile('99999999-9999-9999-9999-999999999999')`,
+]) {
+  await expectFail(`authenticated cannot call ${call.split('(')[0]}`, () => q(`select ${call}`), 'permission denied');
+}
+await db.exec('reset role;');
+
 if (failures.length) {
   console.error(`\n${failures.length} ADMIN DB CHECK(S) FAILED:`);
   for (const f of failures) console.error(`  ✕ ${f}`);

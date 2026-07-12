@@ -90,3 +90,13 @@ audit append + immutability, maintenance server-enforcement, KPI formula
 correctness, and that no client role (anon/authenticated) can read admin tables or
 call admin RPCs. Mutation cases (trust client role, skip audit, expose secrets)
 fail by construction — the service role is server-only and the matrix is in the DB.
+
+## Phase 7H — RBAC performance without weakening
+
+The capability matrix now resolves in-process (TS mirror in `apps/admin/lib/rbac.ts`)
+so pages issue zero `admin_can` round-trips. The DB `admin_can` remains the reference
+definition, and `npm run db:rbac-parity-test` proves the TS mirror is identical
+across all 328 role×capability pairs. The admin context is request-memoized (React
+`cache()`): the JWT is validated once and the active role resolved once per request,
+and a disabled admin is still rejected (role comes from `admin_role_of`, active-only,
+every request). Answer-key views and exports are capability-gated + audited.
