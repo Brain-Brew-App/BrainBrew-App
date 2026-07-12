@@ -16,7 +16,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 
 import { getSupabase } from '../../infrastructure/supabase/client';
-import { refreshEntitlements, resetEntitlementsForIdentityChange } from '../entitlementService';
+import { peekEntitlements, refreshEntitlements, resetEntitlementsForIdentityChange } from '../entitlementService';
 import type { ValidEntitlements } from '../validate';
 import { analytics } from '../analytics';
 import { getRevenueCatService } from './index';
@@ -87,7 +87,16 @@ export function usePremiumController(enabled: boolean, authUserId: string | null
     const svc = getRevenueCatService();
     try {
       if (who && svc) await svc.configure(who);                  // App User ID = Supabase UUID
-      const ent = await refreshEntitlements();
+      let ent: ValidEntitlements | null = null;
+      try {
+        ent = await refreshEntitlements();
+      } catch {
+        // A forced refresh can lose a race with the auth-token lock on a cold
+        // open. The cached entitlement is still authoritative server state — fall
+        // back to it rather than showing a scary "couldn't reach the server".
+        ent = peekEntitlements();
+        if (!ent) throw new Error('no_entitlement');
+      }
       if (owner.current !== who) return;
       setEntitlement(ent);
       dispatch({ type: 'ENTITLEMENT_LOADED', isPremium: isPremiumState(ent) });
