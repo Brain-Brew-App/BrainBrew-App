@@ -17,12 +17,27 @@ export class EntitlementError extends Error {
   }
 }
 
+declare const __DEV__: boolean | undefined;
+
 async function rpc(fn: string, args: Record<string, unknown>): Promise<unknown> {
-  const call = getSupabase().rpc as unknown as (
+  const client = getSupabase();
+  // Call rpc AS A METHOD. Detaching it (`const call = client.rpc`) loses `this`, and
+  // supabase-js then throws `Cannot read property 'rest' of undefined` — which the
+  // catch below would report as a bogus "network_error".
+  const call = client.rpc.bind(client) as unknown as (
     f: string, a: Record<string, unknown>,
   ) => Promise<{ data: unknown; error: unknown }>;
   const { data, error } = await call(fn, args);
-  if (error) throw new EntitlementError('network_error');
+  if (error) {
+    // Dev-only diagnostic. The Postgres code/message identifies a broken grant or a
+    // missing session; a bare "network_error" hides both. No token or payload is
+    // logged, and this is stripped from release builds.
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
+      const e = error as { code?: string; message?: string; details?: string };
+      console.warn(`[cloud] ${fn} failed · code=${e?.code ?? '?'} · ${e?.message ?? ''} ${e?.details ?? ''}`);
+    }
+    throw new EntitlementError('network_error');
+  }
   return data;
 }
 

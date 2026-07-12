@@ -52,3 +52,5 @@ supabase/.branches/
 
 # Local Metro bundler log (dev only)
 metro.log
+
+metro2.log

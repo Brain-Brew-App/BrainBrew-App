@@ -24,7 +24,9 @@ function platform(): AnalyticsContext['platform'] {
 
 const cloudTransport: AnalyticsTransport = {
   async send(events: QueuedEvent[]) {
-    const invoke = getSupabase().functions.invoke as unknown as (
+    const fns = getSupabase().functions;
+    // .bind(fns): `invoke` is a prototype method and needs `this` (FunctionsClient).
+    const invoke = fns.invoke.bind(fns) as unknown as (
       name: string, opts: { body: unknown },
     ) => Promise<{ data: unknown; error: unknown }>;
     const { data, error } = await invoke('analytics-ingest', { body: { events } });

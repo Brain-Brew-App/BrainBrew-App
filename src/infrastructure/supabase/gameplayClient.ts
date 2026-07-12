@@ -146,7 +146,9 @@ export const cloudGameplay = {
     // The generated types are regenerated after this function deploys; until then
     // call through a loosely-typed handle. The response is validated at runtime
     // (validateTodayPlayerStatus) before it reaches any screen.
-    const rpc = getSupabase().rpc as unknown as (
+    const client = getSupabase();
+    // .bind(client): supabase-js `rpc` is a prototype method and needs `this`.
+    const rpc = client.rpc.bind(client) as unknown as (
       fn: string, args: Record<string, unknown>,
     ) => Promise<{ data: unknown; error: unknown }>;
     const { data, error } = await rpc('get_today_player_status', { p_app_version: appVersion ?? null });

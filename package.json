@@ -105,7 +105,8 @@
     "test:authoring-forms": "node scripts/authoring-engine-forms-test.mjs",
     "test:store-mode": "node scripts/store-mode-test.mjs",
     "release:key-check": "node scripts/release-key-check.mjs",
-    "eas-build-pre-install": "node scripts/release-key-check.mjs"
+    "eas-build-pre-install": "node scripts/release-key-check.mjs",
+    "test:supabase-binding": "node scripts/supabase-binding-test.mjs"
   },
   "private": true
 }

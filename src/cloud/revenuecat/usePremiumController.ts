@@ -25,9 +25,15 @@ import { initialContext, premiumUnlocked, reduce, type PremiumContext, type Prem
 import { backoffFor, decideSync, makeDiagnosticRef, MAX_SYNC_ATTEMPTS } from './serverSync';
 import type { OfferingContract, OfferingUnavailable } from './types';
 
+declare const __DEV__: boolean | undefined;
+
 const PREMIUMISH = ['premium', 'grace_period', 'billing_issue'];
 const isPremiumState = (e: ValidEntitlements | null) => !!e && PREMIUMISH.includes(e.entitlementState);
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Cold-open auth-lock contention clears in well under a second; 3 tries is ample. */
+const ENTITLEMENT_ATTEMPTS = 3;
+const ENTITLEMENT_BACKOFF_MS = [400, 1200];
 
 export interface PremiumController {
   state: PremiumState;
@@ -80,6 +86,34 @@ export function usePremiumController(enabled: boolean, authUserId: string | null
     analytics.track('purchase_sync_delayed');
   }, []);
 
+  /**
+   * The authoritative entitlement read, with a bounded retry.
+   *
+   * On a cold open the Supabase auth-token lock is contended (the session restore,
+   * the daily-pack fetch and this read all start at once), so the FIRST attempt can
+   * lose the race and reject even though the network and the server are healthy.
+   * Treating that as "we couldn't reach the server" is simply wrong, and it left
+   * the paywall permanently dead. Retry briefly, prefer any cached server state,
+   * and only then report a real failure.
+   */
+  const loadEntitlement = useCallback(async (who: string | null): Promise<ValidEntitlements | null> => {
+    for (let attempt = 0; attempt < ENTITLEMENT_ATTEMPTS; attempt++) {
+      if (owner.current !== who) return null;
+      try {
+        return await refreshEntitlements();
+      } catch (e) {
+        if (typeof __DEV__ !== 'undefined' && __DEV__) {
+          const err = e as { name?: string; code?: string; message?: string };
+          console.warn(`[premium] entitlement attempt ${attempt + 1} failed · ${err?.name ?? '?'} · ${err?.code ?? ''} · ${err?.message ?? ''}`);
+        }
+        const cached = peekEntitlements();       // already-known server state wins
+        if (cached) return cached;
+        if (attempt < ENTITLEMENT_ATTEMPTS - 1) await sleep(ENTITLEMENT_BACKOFF_MS[attempt]);
+      }
+    }
+    return null;
+  }, []);
+
   /** Load the authoritative entitlement, then the offering. */
   const load = useCallback(async (who: string | null) => {
     dispatch({ type: 'START', supported });
@@ -87,17 +121,9 @@ export function usePremiumController(enabled: boolean, authUserId: string | null
     const svc = getRevenueCatService();
     try {
       if (who && svc) await svc.configure(who);                  // App User ID = Supabase UUID
-      let ent: ValidEntitlements | null = null;
-      try {
-        ent = await refreshEntitlements();
-      } catch {
-        // A forced refresh can lose a race with the auth-token lock on a cold
-        // open. The cached entitlement is still authoritative server state — fall
-        // back to it rather than showing a scary "couldn't reach the server".
-        ent = peekEntitlements();
-        if (!ent) throw new Error('no_entitlement');
-      }
+      const ent = await loadEntitlement(who);
       if (owner.current !== who) return;
+      if (!ent) { dispatch({ type: 'ENTITLEMENT_FAILED' }); return; }
       setEntitlement(ent);
       dispatch({ type: 'ENTITLEMENT_LOADED', isPremium: isPremiumState(ent) });
     } catch {

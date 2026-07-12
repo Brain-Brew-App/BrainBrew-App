@@ -27,7 +27,9 @@ export class LeaderboardError extends Error {
 async function rpc(fn: string, args: Record<string, unknown>): Promise<unknown> {
   // The generated types are regenerated after these functions deploy; call
   // through a loosely-typed handle until then. Responses are validated at runtime.
-  const call = getSupabase().rpc as unknown as (
+  const client = getSupabase();
+  // .bind(client): supabase-js `rpc` is a prototype method and needs `this`.
+  const call = client.rpc.bind(client) as unknown as (
     f: string, a: Record<string, unknown>,
   ) => Promise<{ data: unknown; error: unknown }>;
   const { data, error } = await call(fn, args);
