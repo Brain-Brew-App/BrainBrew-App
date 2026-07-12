@@ -153,6 +153,8 @@ checks below prove the whole path locally (PGlite; no remote needed):
 | `npm run db:incident-void-test` | incident content-void orchestration (Founder + typed-confirm + open-incident guards, void-without-substitution, ranked recalc denominator/score correction, idempotency, resumable batches, retry drift-free, leaderboard/progress correction, security) |
 | `npm run db:revisions-test` | puzzle revision creation (copies seed + parent-links + no approval, source untouched, lineage, security) + structured field-level diff |
 | `npm run test:failure-injection` | failure-injection adapter is env-gated only (production can never activate it; mutation-tests the gate is load-bearing) |
+| `npm run db:archives-test` | Premium Archives (server entitlement gate, sanitized past-pack reads with no answers, unranked isolation from every ranked surface, resume, ranked-fairness invariant, client-mutation denials) |
+| `npm run revenuecat:config-check` | RevenueCat/EAS code readiness vs Founder-owned external-account readiness (names missing items; prints no secret values) |
 | `npm run test:canonical-authoring` | canonical builder+validator reuse (326 puzzles valid, broken candidates caught) |
 | `npm run test:authoring-boundary` | the Admin's generated canonical bundle is byte-identical to the content pipeline (326 puzzles: hash, split, validator) + build failures handled |
 | `npm run authoring:bundle:check` | the committed Admin authoring bundle is not stale vs `src/content` |

@@ -99,3 +99,40 @@ Do not begin any of this without explicit Founder approval:
 `set_release_policy('beta_open')` instantly restores full Practice access for
 everyone (purchasers keep Premium status; no one is blocked). The switch is
 service-role only and independent of any build.
+
+---
+
+## Phase 7J — Founder configuration checklist (one place, no secrets in repo)
+
+Backend Archives + entitlement are live and tested; the store certification is
+Founder-owned. Run `npm run revenuecat:config-check` any time to see code vs
+external readiness. Complete these in order:
+
+**RevenueCat dashboard**
+1. Project + Android app with package **`com.brainbrew.app`**.
+2. Entitlement **`brainbrew_premium`**.
+3. Offering **`default`** with packages **`$rc_monthly`** + **`$rc_annual`**.
+4. Products **`brainbrew_premium_monthly`** + **`brainbrew_premium_annual`**.
+5. Public **Android SDK key** → set as EAS env `EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY`.
+6. **Secret API key** → Supabase Edge secret `REVENUECAT_SECRET_API_KEY` (never client).
+7. **Webhook** → URL = deployed `revenuecat-webhook` function; auth secret →
+   Supabase Edge secret `REVENUECAT_WEBHOOK_SECRET`. Transfer behavior = **no-merge**.
+
+**Google Play Console**
+8. App + package `com.brainbrew.app`; Internal Testing track.
+9. Subscription base-plans (monthly + annual); license tester added.
+10. Service-account linked to RevenueCat.
+
+**EAS / device**
+11. `EXPO_PUBLIC_SUPABASE_URL` + `EXPO_PUBLIC_SUPABASE_ANON_KEY` + the RC Android key in
+    EAS env; `EXPO_PUBLIC_CONTENT_SOURCE=cloud`.
+12. `eas build --profile development --platform android` → install AAB/APK on the S21+.
+
+**Certification (report each with a real transaction — never mark certified otherwise)**
+13. Offering loads (store-localized price, no hard-coded currency).
+14. Monthly + annual sandbox purchase → webhook → `get_my_entitlements` premium → Archives unlock.
+15. Cancel (neutral) · Restore · reinstall-restore · account-switch isolation (no merge).
+16. Expiry/refund removes access · grace/billing behave per policy.
+17. Ranked stays exactly one per UTC day in every state.
+
+Production `production_paywall` stays **disabled** until all of 13–17 are green.

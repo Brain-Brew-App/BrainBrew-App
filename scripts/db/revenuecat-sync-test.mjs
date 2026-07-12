@@ -109,7 +109,10 @@ for (const st of STATES) {
   const e = await entOf(A);
   ok(`[beta_open] state ${st}: ranked limit is exactly 1`, e.limits.ranked_attempts_per_utc_day === 1);
   ok(`[beta_open] state ${st}: unlimited practice stays true for everyone`, e.capabilities.unlimited_practice === true);
-  ok(`[beta_open] state ${st}: no premium FEATURE unlocked (archives off)`, e.capabilities.archives === false);
+  // 7J: Archives is the first live Premium feature — ON for premium-ish states, off otherwise.
+  const premiumish = ['premium', 'grace_period', 'billing_issue'].includes(st);
+  ok(`[beta_open] state ${st}: archives capability = premium-ish (${premiumish})`, e.capabilities.archives === premiumish);
+  ok(`[beta_open] state ${st}: other future FEATURES still off`, e.capabilities.category_training === false && e.capabilities.bonus_packs === false);
 }
 
 // =============================================================================

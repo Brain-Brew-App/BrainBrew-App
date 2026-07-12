@@ -25,6 +25,12 @@ Evidence required.**
 - [ ] Progress/streak calendar + practice summary correct · Progress · with history · open Progress · matches canonical · Med.
 - [ ] Share cards render + export, no answer/PII · Results · after a Brew · share · correct image, no leaks · Med.
 
+## Premium Archives + RevenueCat certification (7J — backend live/tested, device-gated)
+- [ ] Real Android sandbox purchase (monthly + annual) → webhook → server entitlement premium → **Archives unlock** on the same BrainBrew UUID · dev build on S21+ · Founder · run the STORE_SANDBOX_TESTING §7J checklist · **High** · device video + safe logs.
+- [ ] Archives UI: calendar (past dates only), locked state for free with fairness copy, Archive Brew session labelled **UNRANKED**, Archive Results without rank/streak/percentile · Archives screens · Premium vs free · **High** · screenshots 320/390dp. *(UI not yet built — backend `db:archives-test` 27 green.)*
+- [ ] Restore / reinstall-restore / account-switch (no merge) / expiry/refund removes Archives / grace+billing behave · lifecycle · Founder · **High**.
+- [ ] Ranked stays exactly one per UTC day through every purchase/entitlement state · **High** (invariant DB-proven; confirm on device).
+
 ## Premium / RevenueCat (sandbox until launch)
 - [ ] Premium screen states + purchase/restore (sandbox) · Premium · dev build · run STORE_SANDBOX_TESTING · entitlement syncs; ranked unaffected · **High** · device video. (See STORE_SANDBOX_TESTING.md — device step, not yet run.)
 
