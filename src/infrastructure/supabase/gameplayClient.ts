@@ -137,6 +137,10 @@ export const cloudGameplay = {
   startPracticeAttempt(sessionId: string, appVersion?: string): Promise<unknown> {
     return invoke('start-practice-attempt', { sessionId, appVersion });
   },
+  /** Premium Archives: start (or resume) an UNRANKED replay of a PAST daily pack. */
+  startArchiveAttempt(date: string, sessionId: string, appVersion?: string): Promise<unknown> {
+    return invoke('start-archive-attempt', { date, sessionId, appVersion });
+  },
   /** The caller's ranked standing for today, scoped to their JWT (auth.uid()). */
   async getTodayPlayerStatus(appVersion?: string): Promise<PlayerStatusResult> {
     // The generated types are regenerated after this function deploys; until then

@@ -14,7 +14,7 @@
 import { PayloadError, PROGRESS_FORBIDDEN } from './validate';
 import { CATEGORY_ORDER, type BrewScore, type Category } from '../types/puzzle';
 
-export type ShareSessionType = 'ranked' | 'practice' | 'local';
+export type ShareSessionType = 'ranked' | 'practice' | 'local' | 'archive';
 export type ShareCategoryState = 'correct' | 'partial' | 'missed';
 
 export interface ShareCategory {
@@ -115,7 +115,7 @@ export function validateShareSnapshot(raw: unknown): ShareSnapshot {
   if (!raw || typeof raw !== 'object') throw new PayloadError('bad_share_snapshot');
   assertNoForbidden(raw);
   const s = raw as Record<string, unknown>;
-  if (s.sessionType !== 'ranked' && s.sessionType !== 'practice' && s.sessionType !== 'local') throw new PayloadError('bad_share_snapshot', 'sessionType');
+  if (!['ranked', 'practice', 'local', 'archive'].includes(s.sessionType as string)) throw new PayloadError('bad_share_snapshot', 'sessionType');
   if (typeof s.generatedAt !== 'string' || typeof s.date !== 'string') throw new PayloadError('bad_share_snapshot', 'meta');
   if (typeof s.brewScore !== 'number' || s.brewScore < 0 || s.brewScore > 100) throw new PayloadError('bad_share_snapshot', 'score');
   if (!Array.isArray(s.categories) || s.categories.length !== 5) throw new PayloadError('bad_share_snapshot', 'categories');
@@ -132,7 +132,13 @@ export function validateShareSnapshot(raw: unknown): ShareSnapshot {
 
 /** Short, answer-free share text (no leaderboard stats, no answers). */
 export function shareText(snapshot: ShareSnapshot): string {
-  const kind = snapshot.sessionType === 'ranked' ? 'ranked Brew' : 'Practice Brew';
+  // An Archive share NEVER implies the score was earned on the historical date, and
+  // carries no rank/percentile/streak — it is explicitly labelled unranked.
+  const kind = snapshot.sessionType === 'ranked'
+    ? 'ranked Brew'
+    : snapshot.sessionType === 'archive'
+      ? 'ARCHIVE BREW · UNRANKED'
+      : 'Practice Brew';
   const streak = snapshot.sessionType === 'ranked' && snapshot.streak && snapshot.streak > 1 ? ` · ${snapshot.streak}-day streak` : '';
   return `My BrainBrew ${kind}: ${snapshot.brewScore}/100${streak}. Five minutes. Sharper every morning.`;
 }

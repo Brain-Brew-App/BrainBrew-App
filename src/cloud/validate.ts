@@ -848,3 +848,28 @@ export function validateHistoryPage(raw: unknown): ValidHistoryPage {
     hasMore: raw.has_more === true,
   };
 }
+
+/**
+ * The `start-archive-attempt` response (Phase 7J). An Archive brew is UNRANKED by
+ * construction — the server never marks it ranked and never returns a score here.
+ */
+export function validateArchiveStartResult(raw: unknown): {
+  attemptId: string; attemptToken: string; expiresAt: number;
+  rankedDate: string; resumed: boolean; puzzleCount: number;
+} {
+  if (!raw || typeof raw !== 'object') throw new PayloadError('bad_shape', 'archive start is not an object');
+  const r = raw as Record<string, unknown>;
+  const isStr = (v: unknown): v is string => typeof v === 'string' && v.length > 0;
+  const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+  if (!isStr(r.attemptId) || !isStr(r.attemptToken) || !isNum(r.expiresAt)) {
+    throw new PayloadError('bad_shape', 'archive start missing attempt/token');
+  }
+  if (r.isRanked === true || r.is_ranked === true) throw new PayloadError('bad_shape', 'archive start claims ranked');
+  if ('finalScore' in r || 'final_score' in r) throw new PayloadError('bad_shape', 'archive start carries a score');
+  const count = isNum(r.puzzleCount) ? r.puzzleCount : 0;
+  if (count < 1 || count > 5) throw new PayloadError('bad_slot_count', 'archive pack has no playable slots');
+  return {
+    attemptId: r.attemptId, attemptToken: r.attemptToken, expiresAt: r.expiresAt,
+    rankedDate: isStr(r.rankedDate) ? r.rankedDate : '', resumed: r.resumed === true, puzzleCount: count,
+  };
+}

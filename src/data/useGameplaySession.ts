@@ -40,6 +40,8 @@ export interface SessionView {
   results: SessionState['results'];
   /** Whether the CURRENT attempt is ranked (drives the ranked labels). */
   ranked: boolean;
+  /** Set when the CURRENT attempt is a Premium Archive brew (historical UTC date). */
+  archiveDate: string | null;
   /** The completed ranked BrewScore for today, when the day's ranked brew is locked. */
   rankedLockedScore: number | null;
   error: (ErrorCopy & { code: string }) | null;
@@ -53,6 +55,8 @@ export interface SessionView {
     startRanked(): void;
     /** Start (or resume) a fresh unranked Practice Brew (reserve content in cloud). */
     startPractice(): void;
+    /** Premium Archives: start (or resume) an UNRANKED replay of a PAST daily pack. */
+    startArchive(date: string): void;
     submit(answer: Answer): void;
     proceed(): void;
     restart(): void;
@@ -103,6 +107,8 @@ export function useGameplaySession(devOverrideIndex: number | null = null): Sess
   const [outcome, setOutcome] = useState<{ result: CategoryResult; explanation: string } | null>(null);
   const [score, setScore] = useState<FinalOutcome['score'] | null>(null);
   const [ranked, setRanked] = useState(false);
+  /** Set for a Premium Archive brew — the historical UTC date being replayed. */
+  const [archiveDate, setArchiveDate] = useState<string | null>(null);
   const inFlight = useRef(false);
   /** Remembers the last start intent, so a retry re-issues the same one. */
   const lastStartOpts = useRef<{ ranked?: boolean; practice?: boolean }>({});
@@ -162,11 +168,16 @@ export function useGameplaySession(devOverrideIndex: number | null = null): Sess
     });
   }, [guard, service]);
 
-  const beginAttempt = useCallback(async (opts?: { ranked?: boolean; practice?: boolean }) => {
+  const beginAttempt = useCallback(async (opts?: { ranked?: boolean; practice?: boolean; archive?: string }) => {
     lastStartOpts.current = opts ?? {};
+    setArchiveDate(opts?.archive ?? null);
     dispatch({ type: 'START' });
     try {
-      const res: StartResult = opts?.practice ? await service.startPractice() : await service.startSession(opts);
+      const res: StartResult = opts?.archive
+        ? await service.startArchive(opts.archive)
+        : opts?.practice
+          ? await service.startPractice()
+          : await service.startSession(opts);
       // Today's ranked brew is already locked: no new attempt was started. Reflect
       // the completed state on Home rather than entering gameplay.
       if (res.alreadyCompleted) {
@@ -206,6 +217,12 @@ export function useGameplaySession(devOverrideIndex: number | null = null): Sess
   const startPractice = useCallback(() => {
     analytics.track('practice_started');
     void guard(() => beginAttempt({ practice: true }));
+  }, [guard, beginAttempt]);
+
+  /** Premium Archives: replay a PAST daily pack, UNRANKED (server-authorized). */
+  const startArchive = useCallback((date: string) => {
+    analytics.track('archive_start_requested', { properties: { age_band: 'past' } });
+    void guard(() => beginAttempt({ archive: date }));
   }, [guard, beginAttempt]);
 
   const submit = useCallback(
@@ -351,9 +368,10 @@ export function useGameplaySession(devOverrideIndex: number | null = null): Sess
     score,
     results: state.results,
     ranked,
+    archiveDate,
     rankedLockedScore,
     error,
     busy: state.phase === 'submitting' || state.phase === 'completing' || state.phase === 'starting_attempt' || state.phase === 'opening_puzzle',
-    actions: { loadHome, start, startRanked, startPractice, submit, proceed, restart, retry, home },
+    actions: { loadHome, start, startRanked, startPractice, startArchive, submit, proceed, restart, retry, home },
   };
 }

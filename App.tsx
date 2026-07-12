@@ -14,6 +14,8 @@ import { useProgressSummary } from './src/cloud/useProgress';
 import { DEV_ENABLED, PACK_COUNT } from './src/data/dailyPack';
 import { useGameplaySession } from './src/data/useGameplaySession';
 import { AccountEntryScreen } from './src/screens/AccountEntryScreen';
+import { ArchivesScreen } from './src/screens/ArchivesScreen';
+import { ArchivePackDetailScreen } from './src/screens/ArchivePackDetailScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { LeaderboardScreen } from './src/screens/LeaderboardScreen';
 import { PremiumScreen } from './src/screens/PremiumScreen';
@@ -41,9 +43,11 @@ export default function App() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showProgress, setShowProgress] = useState(false);
   const [showPremium, setShowPremium] = useState(false);
+  const [showArchives, setShowArchives] = useState(false);
+  const [archiveDate, setArchiveDate] = useState<string | null>(null);
   const identity = useCloudIdentity(cloud);
   const session = useGameplaySession(devPackIndex);
-  const { phase, status, puzzle, outcome, score, error, busy, mode, position, ranked, actions } = session;
+  const { phase, status, puzzle, outcome, score, error, busy, mode, position, ranked, archiveDate: sessionArchiveDate, actions } = session;
 
   // The daily rank summary loads ONLY when there is a completed ranked result to
   // compare — never as part of the critical Home/pack path (Task 12). It is
@@ -59,7 +63,7 @@ export default function App() {
 
   // Entitlements power the Premium-preview surfaces only — never the play path.
   // Cache-first and loaded lazily once the Premium screen is opened.
-  const entitlements = useEntitlements(cloud && identity.phase === 'ready' && showPremium);
+  const entitlements = useEntitlements(cloud && identity.phase === 'ready' && (showPremium || showArchives));
 
   const showDev = DEV_ENABLED && mode === 'local';
   const devTools =
@@ -115,8 +119,30 @@ export default function App() {
       if (showLeaderboard) {
         return <LeaderboardScreen onBack={() => setShowLeaderboard(false)} />;
       }
+      if (showArchives && archiveDate) {
+        return (
+          <ArchivePackDetailScreen
+            date={archiveDate}
+            authUserId={identity.profile?.id ?? null}
+            onBack={() => setArchiveDate(null)}
+            onStart={(date) => { setShowArchives(false); setArchiveDate(null); actions.startArchive(date); }}
+            busy={busy}
+          />
+        );
+      }
+      if (showArchives) {
+        return (
+          <ArchivesScreen
+            entitlements={entitlements.entitlements}
+            authUserId={identity.profile?.id ?? null}
+            onBack={() => setShowArchives(false)}
+            onOpenPremium={() => { setShowArchives(false); setShowPremium(true); }}
+            onSelectDate={(date) => setArchiveDate(date)}
+          />
+        );
+      }
       if (showPremium) {
-        return <PremiumScreen entitlements={entitlements.entitlements} onBack={() => setShowPremium(false)} />;
+        return <PremiumScreen entitlements={entitlements.entitlements} onBack={() => setShowPremium(false)} onOpenArchives={() => { setShowPremium(false); setShowArchives(true); }} />;
       }
       if (showSecure) {
         return (
@@ -221,8 +247,9 @@ export default function App() {
             onViewLeaderboards={cloud && ranked ? () => setShowLeaderboard(true) : undefined}
             progressSummary={cloud && ranked ? progressSummary : undefined}
             onViewProgress={cloud ? () => setShowProgress(true) : undefined}
-            sessionType={ranked ? 'ranked' : mode === 'local' ? 'local' : 'practice'}
-            shareDate={status?.date}
+            sessionType={sessionArchiveDate ? 'archive' : ranked ? 'ranked' : mode === 'local' ? 'local' : 'practice'}
+            shareDate={sessionArchiveDate ?? status?.date}
+            onBackToArchives={sessionArchiveDate ? () => { actions.home(); setShowArchives(true); } : undefined}
             streak={cloud && ranked ? progressSummary.summary?.currentStreak ?? null : null}
             updatedAfterValidation={cloud && ranked ? rankSummary.summary?.updatedAfterValidation : false}
           />
@@ -253,6 +280,8 @@ export default function App() {
         ? 'progress'
         : cloud && showLeaderboard
         ? 'leaderboard'
+        : cloud && showArchives
+        ? (archiveDate ? 'archive-detail' : 'archives')
         : cloud && showPremium
         ? 'premium'
         : cloud && showSecure

@@ -13,6 +13,8 @@ interface PremiumScreenProps {
   /** The player's server entitlement (from App); usePremium refreshes it live. */
   entitlements: ValidEntitlements | null;
   onBack: () => void;
+  /** Open Premium Archives — the first real Premium feature (7J). */
+  onOpenArchives?: () => void;
 }
 
 const planLabel = (plan: string) => (plan === 'monthly' ? 'Monthly' : plan === 'annual' ? 'Annual' : 'Plan');
@@ -24,7 +26,7 @@ const planLabel = (plan: string) => (plan === 'monthly' ? 'Monthly' : plan === '
  * Practice; the store flow is exercised without blocking anyone. No fake prices,
  * no dark patterns, purchasing waits for server-synchronized entitlement.
  */
-export function PremiumScreen({ entitlements, onBack }: PremiumScreenProps) {
+export function PremiumScreen({ entitlements, onBack, onOpenArchives }: PremiumScreenProps) {
   const p = usePremium(true);
   const ent = p.entitlement ?? entitlements;
   const state = ent?.entitlementState ?? 'beta';

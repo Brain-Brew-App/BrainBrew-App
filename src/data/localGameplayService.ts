@@ -55,6 +55,11 @@ export class LocalGameplayService implements GameplayService {
     return this.startSession();
   }
 
+  /** Archives are a server-authoritative Premium feature — never available offline. */
+  async startArchive(_date: string): Promise<StartResult> {
+    throw new Error('archive_unsupported_local');
+  }
+
   async openPuzzle(position: number): Promise<OpenedPuzzle> {
     const puzzle = this.pack.puzzles[position - 1];
     if (!puzzle) throw new Error(`local: no puzzle at position ${position}`);

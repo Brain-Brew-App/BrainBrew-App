@@ -54,8 +54,16 @@ Deno.serve(async (req) => {
       typ: 'attempt', aid: res.attempt_id, uid: user.id, sid: sessionId, pid: packId, iat, exp, nonce: newNonce(),
     });
 
+    // Active (non-void) slot count — the archive brew's puzzle count + denominator base.
+    const slotRes = await svc.from('daily_pack_slots').select('position').eq('pack_id', packId).eq('void_status', false);
+    const positions = ((slotRes.data as { position: number }[] | null) ?? []).map((s) => s.position).sort((a, b) => a - b);
+
     console.log('start_archive_attempt', JSON.stringify({ resumed: res.resumed, user: user.id.slice(0, 8) }));
-    return json({ attempt_id: res.attempt_id, ranked_date: res.ranked_date, resumed: res.resumed, attemptToken, expiresAt: exp });
+    return json({
+      attemptId: res.attempt_id, attemptToken, expiresAt: exp,
+      rankedDate: res.ranked_date, resumed: res.resumed,
+      puzzleCount: positions.length, positions,
+    });
   } catch (err) {
     return errorResponse(err);
   }

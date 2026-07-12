@@ -136,3 +136,21 @@ external readiness. Complete these in order:
 17. Ranked stays exactly one per UTC day in every state.
 
 Production `production_paywall` stays **disabled** until all of 13–17 are green.
+
+## ADB / device readiness (S21+ connected, Developer Mode + USB debugging)
+
+No native install has occurred yet — these are the commands once an APK exists.
+
+```
+adb devices                 # the S21+ must show "device" (not "unauthorized")
+adb install -r <app>.apk    # install the EAS development build
+adb shell pm list packages | findstr brainbrew        # expect com.brainbrew.app
+adb logcat -s ReactNativeJS:V RevenueCat:V            # app + purchase logs only
+
+# Deep links — BOTH schemes must resolve (Auth + RevenueCat return):
+adb shell am start -a android.intent.action.VIEW -d "brainbrew://auth-callback"
+adb shell am start -a android.intent.action.VIEW -d "rc-2f2d62d750://"
+```
+
+`app.config.js` declares `scheme: ['brainbrew', 'rc-2f2d62d750']` — the Auth scheme is
+never replaced. Verified by `npm run revenuecat:config-check`.

@@ -92,8 +92,9 @@ export function activeDenominator(pack: ArchivePack, maxPerSlot = 20): number {
 export function validateArchiveStart(raw: unknown): { attemptId: string; rankedDate: string; resumed: boolean } {
   assertNoForbiddenFields(raw);
   const r = raw as Record<string, unknown>;
-  if (r.is_ranked === true) throw new Error('archive start returned is_ranked=true');
+  if (r.is_ranked === true || r.isRanked === true) throw new Error('archive start returned is_ranked=true');
   if ('final_score' in r || 'score' in r) throw new Error('archive start must not carry a client score');
-  if (!r.attempt_id) throw new Error('archive start missing attempt_id');
-  return { attemptId: String(r.attempt_id), rankedDate: String(r.ranked_date ?? ''), resumed: !!r.resumed };
+  const id = r.attemptId ?? r.attempt_id;
+  if (!id) throw new Error('archive start missing attempt_id');
+  return { attemptId: String(id), rankedDate: String(r.rankedDate ?? r.ranked_date ?? ''), resumed: !!r.resumed };
 }

@@ -44,6 +44,8 @@ interface ResultsScreenProps {
   shareDate?: string;
   /** Current ranked streak, for a ranked share card only. */
   streak?: number | null;
+  /** Set for a Premium Archive brew — returns to the Archives calendar. */
+  onBackToArchives?: () => void;
   /** Ranked-only: the score was corrected by a puzzle-void recalculation. */
   updatedAfterValidation?: boolean;
 }
@@ -53,7 +55,7 @@ const CELEBRATION_THRESHOLD = 85;
 
 export function ResultsScreen({
   score, onPlayAgain, onHome, busy = false, ranked = false, rankSummary, onViewLeaderboards,
-  progressSummary, onViewProgress, sessionType, shareDate, streak, updatedAfterValidation,
+  progressSummary, onViewProgress, sessionType, shareDate, streak, updatedAfterValidation, onBackToArchives,
 }: ResultsScreenProps) {
   const reduced = useReducedMotion();
   const displayed = useCountUp(score.total, reduced);
@@ -65,7 +67,10 @@ export function ResultsScreen({
   // The session type of THIS result (ranked / practice / local). Practice is the
   // default for a non-ranked cloud brew; local mode is its own label.
   const resolvedType: ShareSessionType = sessionType ?? (ranked ? 'ranked' : 'practice');
-  const replayLabel = resolvedType === 'ranked' ? 'Practice Brew' : 'Play another Practice Brew';
+  const isArchive = resolvedType === 'archive';
+  const replayLabel = isArchive
+    ? 'Play this Archive Brew again'
+    : resolvedType === 'ranked' ? 'Practice Brew' : 'Play another Practice Brew';
 
   // A FROZEN snapshot for this result — generated_at is captured once so an
   // exported card is an immutable historical copy (a later void recalc won't
@@ -97,6 +102,12 @@ export function ResultsScreen({
             {ranked ? (
               <View style={styles.rankedTag}>
                 <Text style={styles.rankedTagText}>Ranked</Text>
+              </View>
+            ) : isArchive ? (
+              // An Archive brew replays a PAST pack: no rank, percentile, streak or
+              // ranked comparison ever appears (ranked=false already suppresses them).
+              <View style={styles.guestTag}>
+                <Text style={styles.guestTagText}>ARCHIVE BREW · UNRANKED{shareDate ? ` · ${shareDate}` : ''}</Text>
               </View>
             ) : (
               <View style={styles.guestTag}>
@@ -180,11 +191,18 @@ export function ResultsScreen({
             <Button label="Share Result" onPress={() => setShareOpen(true)} disabled={busy} />
 
             <Text style={styles.tomorrow}>
-              {resolvedType === 'ranked' ? 'A new brew is poured at 00:00 UTC.' : 'Practice never affects your ranked score or streak.'}
+              {resolvedType === 'ranked'
+                ? 'A new brew is poured at 00:00 UTC.'
+                : isArchive
+                  ? 'Archive Brews never affect your ranked score, streak or the leaderboards.'
+                  : 'Practice never affects your ranked score or streak.'}
             </Text>
 
             <Button label={replayLabel} variant={resolvedType === 'ranked' ? 'secondary' : 'primary'} onPress={onPlayAgain} disabled={busy} />
-            {resolvedType !== 'ranked' && onViewProgress && (
+            {isArchive && onBackToArchives && (
+              <Button label="Return to Archives" variant="secondary" onPress={onBackToArchives} disabled={busy} />
+            )}
+            {resolvedType !== 'ranked' && !isArchive && onViewProgress && (
               <Button label="View Practice Progress" variant="secondary" onPress={onViewProgress} disabled={busy} />
             )}
             <Button label="Back to home" variant="secondary" onPress={onHome} disabled={busy} />

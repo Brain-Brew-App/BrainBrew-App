@@ -110,6 +110,9 @@ export interface GameplayService {
   /** Begin (or resume) a fresh UNRANKED Practice brew. Cloud = reserve content;
    *  local = the offline local pack. Always unranked. */
   startPractice(): Promise<StartResult>;
+  /** Premium Archives: begin (or resume) an UNRANKED replay of a PAST daily pack.
+   *  Entitlement is re-checked SERVER-SIDE; cloud only. */
+  startArchive(date: string): Promise<StartResult>;
   /** Open the slot at `position` (1..5); starts the (server) timer. */
   openPuzzle(position: number): Promise<OpenedPuzzle>;
   /** Submit the player's raw answer for `position`; returns the scored reveal. */
