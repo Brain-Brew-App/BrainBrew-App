@@ -148,6 +148,9 @@ checks below prove the whole path locally (PGlite; no remote needed):
 | `npm run db:practice-summary-test` | private Practice summary formulas, history pagination, ranked exclusion, security |
 | `npm run db:entitlement-test` | beta policy for anon+permanent, all capabilities, ranked-limit-1 invariant, no-user-param, anon denied |
 | `npm run db:admin-test` | admin RBAC matrix, audit immutability, maintenance enforcement, KPI formulas, security |
+| `npm run db:authoring-test` | content authoring review state machine (validation-gates-approval, two-person control, promote-to-reserve, security) |
+| `npm run test:canonical-authoring` | canonical builder+validator reuse (326 puzzles valid, broken candidates caught) |
+| `npm run db:content-mutations-test` | retire/delete lifecycle guards (history-safe) |
 | `npm run db:analytics-test` | event ingestion (allowlist/dedup/forbidden-fields/spoofed-user), rollups (idempotent+correcting), retention, funnel, exclusion, security |
 | `npm run db:entitlement-map-test` | RevenueCat subscriber → entitlement-state mapping (premium/trial/grace/billing/expired/refunded/free) |
 | `npm run db:revenuecat-test` | subscription persistence, webhook idempotency/ordering, policy modes, practice gate, ranked-1 in every state, RLS/security, mutation cases |

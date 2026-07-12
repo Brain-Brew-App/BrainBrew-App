@@ -42,3 +42,14 @@ supersedes link, rebuild+revalidate+review), the review/approval workflow, and
 pack create/schedule/publish/void operations. The immutability guards above are the
 safe foundation these build on. No validator bypass, no live-membership edit, no
 hot-swap — ever.
+
+## Phase 7H.2 — authoring drafts + review state machine
+
+Draft authoring now has a dedicated private `authoring_drafts` table + a
+server-controlled review state machine (`draft → built | validation_failed →
+awaiting_review → approved | rejected | changes_requested → promoted`) with
+validation-gated approval, **two-person control**, and `promote_to_reserve` that
+creates canonical approved (reserve) content atomically. Canonical builders +
+`validatePuzzle` are reused (proven: 326 valid, broken caught). See
+ADMIN_PUZZLE_AUTHORING.md / ADMIN_PUZZLE_VERSIONING.md / ADMIN_CONTENT_SECURITY.md.
+Tested: `db:authoring-test` (23), `test:canonical-authoring` (4).

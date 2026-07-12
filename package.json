@@ -83,7 +83,9 @@
     "db:admin-test": "node scripts/db/admin-test.mjs",
     "db:analytics-test": "node scripts/db/analytics-test.mjs",
     "db:rbac-parity-test": "node scripts/db/rbac-parity-test.mjs",
-    "db:content-mutations-test": "node scripts/db/content-mutations-test.mjs"
+    "db:content-mutations-test": "node scripts/db/content-mutations-test.mjs",
+    "db:authoring-test": "node scripts/db/content-authoring-test.mjs",
+    "test:canonical-authoring": "node scripts/canonical-authoring-test.mjs"
   },
   "private": true
 }

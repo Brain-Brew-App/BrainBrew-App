@@ -31,3 +31,13 @@ A browser **Playwright** suite driving a preview deployment per role (hidden nav
 Server-Action denial, error/empty/loading states, tablet shell). Not yet added;
 the DB-level RBAC/parity + build/type checks are the current security proof. No
 production accounts are used in any automated test.
+
+## Phase 7H.2 update
+
+Added DB-level coverage: content-authoring review state machine
+(`db:authoring-test`, 23 — validation-gates-approval, two-person control,
+promote-to-reserve, security), content mutations (`db:content-mutations-test`, 13),
+and canonical builder/validator reuse (`test:canonical-authoring`, 4). Full
+**Playwright** per-role + auth/session + content E2E and the failure-injection
+adapter remain the next milestone (Part I) — the backend they will drive is live and
+DB-tested; per-role RBAC is proven at the DB layer (`db:rbac-parity-test`, 328).
