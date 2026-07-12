@@ -4,6 +4,7 @@ import { requireCapability, getAdminContext, contextCan, hasRecentAuth } from '@
 import { adminClient } from '@/lib/supabase';
 import { isAuthorableEngine, getFormSchema } from '@/lib/authoring/engines';
 import type { PreviewModel } from '@/lib/authoring/engines/types';
+import { diffFields, PUZZLE_DIFF_ORDER } from '@/lib/authoring/diff';
 import { Preview } from '../../Preview';
 import { ReviewActions } from './ReviewActions';
 
@@ -30,6 +31,19 @@ export default async function DraftWorkbench({ params }: { params: Promise<{ id:
       preview = getFormSchema(draft.engine_id).previewAdapter(draft.built_payload, mayReveal ? draft.answer_payload : undefined);
     } catch {
       preview = null;
+    }
+  }
+
+  // Structured diff vs the parent canonical puzzle (revisions only).
+  let diff: ReturnType<typeof diffFields> = [];
+  if (draft.parent_puzzle_id) {
+    const parent = (await adminClient().from('puzzles').select('difficulty,prompt,public_payload,content_hash,seed_id').eq('puzzle_id', draft.parent_puzzle_id).maybeSingle()).data as Record<string, any> | null;
+    const parentSeed = parent?.seed_id ? (await adminClient().from('puzzle_seeds').select('payload').eq('seed_id', parent.seed_id).maybeSingle()).data as { payload?: unknown } | null : null;
+    if (parent) {
+      const before: Record<string, unknown> = { difficulty: parent.difficulty, prompt: parent.prompt, public_payload: parent.public_payload, content_hash: parent.content_hash, seed: parentSeed?.payload };
+      const after: Record<string, unknown> = { difficulty: draft.difficulty, prompt: draft.built_payload?.prompt, public_payload: draft.built_payload, content_hash: draft.content_hash, seed: draft.seed };
+      if (mayReveal) { before.answer = null; after.answer = draft.answer_payload; }
+      diff = diffFields(before, after, PUZZLE_DIFF_ORDER);
     }
   }
 
@@ -74,6 +88,25 @@ export default async function DraftWorkbench({ params }: { params: Promise<{ id:
 
           {draft.review_notes && (
             <div className="card"><div className="kpi-label">Reviewer notes</div><p style={{ marginTop: 4 }}>{draft.review_notes}</p></div>
+          )}
+
+          {draft.parent_puzzle_id && (
+            <div className="card">
+              <div className="kpi-label" style={{ marginBottom: 6 }}>Revision of <span style={{ fontFamily: 'monospace' }}>{draft.parent_puzzle_id}</span></div>
+              {diff.length === 0 ? <p className="faint">No field-level differences yet (rebuild the candidate to populate).</p> : diff.map((d) => (
+                <div key={d.field} style={{ padding: '6px 0', borderTop: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <span className={`pill ${d.kind === 'added' ? 'ok' : d.kind === 'removed' ? 'danger' : 'warn'}`}>{d.kind}</span>
+                    <b>{d.field}</b>
+                  </div>
+                  <div style={{ fontFamily: 'monospace', fontSize: 12, marginTop: 4 }}>
+                    {d.before !== null && <div style={{ color: 'var(--danger)' }}>− {d.before.slice(0, 200)}</div>}
+                    {d.after !== null && <div style={{ color: 'var(--mint)' }}>+ {d.after.slice(0, 200)}</div>}
+                  </div>
+                </div>
+              ))}
+              {!mayReveal && <p className="faint" style={{ marginTop: 6 }}>Answer diff hidden — reviewer role + recent sign-in required.</p>}
+            </div>
           )}
 
           <ReviewActions id={id} status={draft.status} role={ctx.role} isAuthor={draft.author === ctx.userId} canReview={canReview} canManage={canManage} />

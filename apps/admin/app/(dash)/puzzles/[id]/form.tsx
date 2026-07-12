@@ -3,7 +3,20 @@
 import { useActionState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { retirePuzzle, deleteDraft } from './actions';
+import { retirePuzzle, deleteDraft, createRevisionAction } from './actions';
+
+export function RevisionForm({ id }: { id: string }) {
+  const [state, action, pending] = useActionState(createRevisionAction, {} as { error?: string });
+  return (
+    <form action={action} style={{ display: 'grid', gap: 8, maxWidth: 460 }}>
+      <input type="hidden" name="id" value={id} />
+      <div className="kpi-label">Create revised version (immutable content is never edited in place)</div>
+      <p className="faint" style={{ margin: 0 }}>Opens a new draft that copies the seed and links this puzzle as its parent. It must be rebuilt, revalidated and reviewed independently; this puzzle is untouched.</p>
+      <button type="submit" disabled={pending}>{pending ? 'Creating…' : 'Create revised version'}</button>
+      {state?.error && <span className="pill danger">{state.error}</span>}
+    </form>
+  );
+}
 
 export function RetireForm({ id }: { id: string }) {
   const [state, action, pending] = useActionState(retirePuzzle, {} as { error?: string; ok?: string });

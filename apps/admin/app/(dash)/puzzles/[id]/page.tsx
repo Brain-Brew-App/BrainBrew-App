@@ -2,7 +2,7 @@ import { requireCapability, contextCan } from '@/lib/auth';
 import { adminClient } from '@/lib/supabase';
 import { writeAudit } from '@/lib/audit';
 import { Freshness, num, pct, StateNote } from '@/components/ui';
-import { RetireForm, DeleteDraftForm } from './form';
+import { RetireForm, DeleteDraftForm, RevisionForm } from './form';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,6 +30,8 @@ export default async function PuzzleDetail(
   const stats = (detail.stats ?? {}) as Record<string, unknown>;
   const validation = (detail.validation ?? []) as Record<string, unknown>[];
   const scheduled = (detail.scheduled_in ?? []) as Record<string, unknown>[];
+  const lineage = (await svc.rpc('admin_puzzle_lineage', { p_puzzle_id: id })).data as { revisions?: { proposed_puzzle_id: string; status: string; promoted: boolean; updated_at: string }[] } | null;
+  const revisions = lineage?.revisions ?? [];
 
   return (
     <>
@@ -76,14 +78,30 @@ export default async function PuzzleDetail(
         <>
           <h2 style={{ marginTop: 24 }}>Operations</h2>
           <div className="card" style={{ display: 'grid', gap: 16 }}>
+            {(detail.status === 'approved' || detail.status === 'retired') && <RevisionForm id={String(detail.puzzle_id)} />}
             {detail.status !== 'retired'
               ? <RetireForm id={String(detail.puzzle_id)} />
               : <StateNote kind="unavailable">Already retired.</StateNote>}
             {detail.status === 'draft' && !((detail.scheduled_in as unknown[])?.length) && <DeleteDraftForm id={String(detail.puzzle_id)} />}
           </div>
           <p className="faint" style={{ marginTop: 8 }}>
-            Immutable-content edits (approved/scheduled/used puzzles) create a new version rather than mutating history — that authoring workflow is the next content-ops milestone. Live pack membership and answers are never changed here.
+            Immutable content (approved/scheduled/used puzzles) is never edited in place — “Create revised version” opens a new parent-linked draft. Live pack membership and answers are never changed here.
           </p>
+
+          {revisions.length > 0 && (
+            <>
+              <h2 style={{ marginTop: 24 }}>Revision lineage</h2>
+              <div className="card">
+                {revisions.map((r) => (
+                  <div key={r.proposed_puzzle_id} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '4px 0', borderTop: '1px solid var(--border)' }}>
+                    <span style={{ fontFamily: 'monospace' }}>{r.proposed_puzzle_id}</span>
+                    <span className={`pill ${r.promoted ? 'ok' : 'warn'}`}>{r.status}</span>
+                    <span className="faint" style={{ marginLeft: 'auto' }}>{new Date(r.updated_at).toISOString().slice(0, 10)}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </>
       )}
     </>

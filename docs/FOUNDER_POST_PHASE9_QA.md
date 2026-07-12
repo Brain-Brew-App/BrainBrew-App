@@ -44,6 +44,11 @@ Evidence required.**
 - [ ] Delete unused draft (reauth + typed confirm); used denied · Puzzle detail · test draft · delete · works only for eligible draft · **High**.
 - [ ] **Authoring UI (create → build → validate → preview → review → approve → reserve)** · Authoring · Content/Founder · author a test puzzle · canonical build+validate; two-person approval · **High** · *canonical build/validate boundary live/tested (7H.3.1); 15-engine forms + preview UI still to build (7H.3.2–3).*
 
+## Admin — certification & closure (7I.2D)
+- [ ] **Credentialed Playwright suite** (auth/session, per-role RBAC, puzzle/pack/incident lifecycle) executed against a **protected preview** with the 8 provisioned test users · CI · run `npm run admin-e2e:provision` then `npm run e2e` with `ADMIN_E2E_*` secrets · all green · **High** · CI artifact. (Route-protection `auth.spec` runs green now; credentialed specs `rbac.spec` are written + matrix-driven and skip without creds — this is the one remaining Founder/CI execution step.)
+- [ ] Revision flow (browser): from an approved puzzle → Create revised version → new parent-linked draft → structured diff renders readably; answer diff only for reviewer + recent auth · `/puzzles/{id}` → `/content/authoring/draft/{id}` · Founder · **High** · screenshots.
+- [ ] Failure-injection scenarios surface safe recovery UI in **preview only** (never production) · preview with `ADMIN_FAILURE_INJECTION=1` · Founder/CI · Med.
+
 ## Admin — content operations UI (7I.2; wired to tested backends, visual/usability deferred)
 Routes: `/content/authoring/queue`, `/content/authoring/draft/{id}`, `/packs/authoring`, `/packs/authoring/{id}`. Test fixtures only.
 - [ ] Review queue: paginated, status filters, no answer fields in the list; opens a draft workbench · Content/Founder · click through · fast, correct · **High** · screenshots.

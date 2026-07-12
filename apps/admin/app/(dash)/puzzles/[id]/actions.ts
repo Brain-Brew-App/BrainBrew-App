@@ -1,10 +1,21 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 
 import { requireCapability, hasRecentAuth } from '@/lib/auth';
 import { adminClient, sessionClient } from '@/lib/supabase';
 import { writeAudit } from '@/lib/audit';
+
+/** Create a revised version of immutable canonical content (new draft, parent-linked). */
+export async function createRevisionAction(_prev: unknown, form: FormData): Promise<{ error?: string }> {
+  const ctx = await requireCapability('manage_content');
+  const id = String(form.get('id') ?? '');
+  const r = (await adminClient().rpc('admin_create_revision', { p_source_puzzle_id: id, p_by: ctx.userId, p_role: ctx.role })).data as { ok?: boolean; reason?: string; draft_id?: string } | null;
+  if (!r?.ok || !r.draft_id) return { error: `Could not create revision (${r?.reason ?? 'error'}).` };
+  await writeAudit(ctx, { action: 'create_revision_ui', targetType: 'puzzle', targetId: id, summary: { draft: r.draft_id } });
+  redirect(`/content/authoring/draft/${r.draft_id}`);
+}
 
 /** Retire a puzzle (excludes from future use; history preserved). Content roles. */
 export async function retirePuzzle(_prev: unknown, form: FormData): Promise<{ error?: string; ok?: string }> {
