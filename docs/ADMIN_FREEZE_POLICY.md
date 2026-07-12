@@ -40,6 +40,16 @@ The freeze lifts only by an explicit Founder decision after post-Phase-9 QA, sco
 a named new milestone. Until then, `apps/admin` changes are limited to the allowed set
 above, and each PR/commit should state which allowed category it falls under.
 
+## Certification status at freeze
+The freeze takes effect with Phase 7I **functionally complete and automated-certified**
+(see ADMIN_DEPLOYMENT_CERTIFICATION.md § "Phase 7I": failure-injection safety, incident
+void/recalc, revision/diff, pack publish, authoring, parity, route-protection 18/18 —
+all green). The **credentialed browser certification** (per-role RBAC + puzzle/pack/
+incident lifecycle E2E) is **not yet executed** — blocked on the 8 `ADMIN_E2E_*` test
+secrets + a protected Vercel Preview (token revoked). Running that suite via the
+documented runbook is an allowed, in-scope activity during the freeze (it is
+verification, not a new feature) and is the one step remaining for formal sign-off.
+
 ## What "frozen" covers
 `apps/admin/**`, the Admin RPCs (`admin_*`), the incident-void operations, and the
 authoring/pack/revision backends. The canonical content pipeline (`src/content/*`) and

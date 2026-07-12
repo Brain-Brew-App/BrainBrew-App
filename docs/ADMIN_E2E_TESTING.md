@@ -41,3 +41,14 @@ and canonical builder/validator reuse (`test:canonical-authoring`, 4). Full
 **Playwright** per-role + auth/session + content E2E and the failure-injection
 adapter remain the next milestone (Part I) — the backend they will drive is live and
 DB-tested; per-role RBAC is proven at the DB layer (`db:rbac-parity-test`, 328).
+
+## Phase 7I certification status (see ADMIN_DEPLOYMENT_CERTIFICATION.md)
+Playwright now lives in `apps/admin/e2e`: `auth.spec.ts` (route-protection, runs
+green **18/18 vs production**), `rbac.spec.ts` (credentialed, matrix-driven via
+`e2e/roles.ts`, **skips cleanly without secrets**), and the provisioning tooling
+(`admin-e2e:provision/verify/cleanup`). The failure-injection adapter
+(`lib/failureInjection.ts`) is env-gated and its production-safety is proven
+(`test:failure-injection`, 11, incl. a mutation test). The **credentialed browser
+run is not yet executed** — it is blocked on Founder-owned prerequisites (the 8
+`ADMIN_E2E_*` passwords + a protected Vercel Preview; the Vercel token was revoked).
+The runbook to complete it is in ADMIN_DEPLOYMENT_CERTIFICATION.md § "Phase 7I".
