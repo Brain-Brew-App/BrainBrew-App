@@ -85,6 +85,30 @@ Built + tested (`npm run test:premium-archive`, 36 checks), device-independent:
   provider_customer_id/answer keys/etc.) so an answer or provider secret can never
   render even if the server regressed.
 
+## Service + reconciliation layer (7J.5 — built, tested, deployed)
+- **ArchiveService** (`src/cloud/archive/archiveService.ts`) — the ONLY boundary
+  screens use; injectable transport (`{rpc, invoke}`); every response passes
+  archiveValidate + the forbidden-field guard. Cloud reads via the authenticated
+  RPCs; start via the `start-archive-attempt` Edge Function; local mode is
+  explicitly unsupported (never fakes premium). Screens never touch Supabase.
+- **`start-archive-attempt` Edge Function** (deployed) — JWT-verified; calls the
+  tested `start_archive_attempt` RPC (entitlement re-checked server-side); issues an
+  attempt token bound to the historical pack so open/submit/complete work unchanged.
+- **`revenuecat-reconcile` Edge Function** (deployed) — authenticated, **self-only**
+  (JWT-derived uid, never a body UUID); re-fetches authoritative RevenueCat
+  subscriber state, maps it canonically, upserts `player_entitlements` via
+  `sync_player_entitlement`; idempotent; per-user cooldown; returns only the
+  sanitized entitlement state. Used after purchase/restore/delayed-webhook/restart.
+- **Native schemes** — `app.config.js` `scheme: ['brainbrew', 'rc-2f2d62d750']`
+  (Auth deep link preserved + RevenueCat return).
+- **Analytics** — the premium + archive events are in the `ANALYTICS_EVENTS`
+  allowlist (only allowlisted names + safe props emit; no receipts/tokens/ids).
+
+**Tested (device-independent):** `test:premium-archive` (36) + `test:premium-archive-flow`
+(18 mocked journeys: purchase→server-confirm→unlock, restore, archive session,
+account-switch isolation, expiration-blocks-new-start, local unsupported). Both
+Edge Functions `deno check` clean and are deployed.
+
 ## Build runbook (Android development build — after RC/Play config)
 ```
 eas login && eas whoami

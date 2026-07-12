@@ -11,6 +11,7 @@
         "npm:@react-native-async-storage/async-storage@2.2.0",
         "npm:@supabase/supabase-js@^2.110.2",
         "npm:@types/react@~19.2.2",
+        "npm:esbuild@~0.28.1",
         "npm:expo-sharing@~57.0.3",
         "npm:expo-splash-screen@~57.0.2",
         "npm:expo-status-bar@57.0",

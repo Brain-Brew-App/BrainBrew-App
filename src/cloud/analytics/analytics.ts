@@ -21,6 +21,12 @@ export const ANALYTICS_EVENTS = [
   'share_requested', 'share_completed', 'share_cancelled', 'share_failed',
   'premium_preview_viewed', 'offering_requested', 'offering_loaded', 'purchase_requested',
   'purchase_cancelled', 'purchase_client_failed', 'restore_requested', 'restore_completed',
+  // 7J Premium purchase + Archives (safe, non-identifying — no receipts/tokens/ids).
+  'premium_screen_viewed', 'offering_unavailable', 'purchase_started', 'purchase_sdk_succeeded',
+  'purchase_server_confirmed', 'purchase_sync_delayed', 'restore_started', 'restore_nothing_found',
+  'restore_conflict', 'premium_feature_opened',
+  'archive_calendar_viewed', 'archive_locked_viewed', 'archive_date_selected', 'archive_start_requested',
+  'archive_started', 'archive_resumed', 'archive_completed', 'archive_replayed',
 ] as const;
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[number];
 const ALLOWED = new Set<string>(ANALYTICS_EVENTS);

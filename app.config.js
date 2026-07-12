@@ -24,10 +24,11 @@ module.exports = {
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'dark',
-  // Deep-link scheme for the email-upgrade / sign-in callback on native
-  // (`brainbrew://auth-callback`). Web uses the site origin. See
-  // docs/EMAIL_ACCOUNT_UPGRADE.md.
-  scheme: 'brainbrew',
+  // Deep-link schemes: `brainbrew` for the email-upgrade / sign-in callback
+  // (`brainbrew://auth-callback`, docs/EMAIL_ACCOUNT_UPGRADE.md) and the
+  // RevenueCat-generated `rc-2f2d62d750` for the purchase return flow. Both are
+  // required on native; the Auth scheme must never be replaced. Web uses origin.
+  scheme: ['brainbrew', 'rc-2f2d62d750'],
   // Root view behind the React tree. Needs expo-system-ui on iOS.
   backgroundColor: background,
   ios: {

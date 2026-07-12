@@ -21,7 +21,8 @@ const ck = (cond, name) => (cond ? codeOk.push(name) : codeFail.push(name));
 // ── CODE readiness (verifiable in-repo) ──────────────────────────────────────
 const appCfg = read('app.config.js');
 ck(/package:\s*'com\.brainbrew\.app'/.test(appCfg), "android.package = com.brainbrew.app");
-ck(/scheme:\s*'brainbrew'/.test(appCfg), "URL scheme = brainbrew");
+ck(/scheme:.*'brainbrew'/.test(appCfg), "URL scheme includes brainbrew (Auth deep link)");
+ck(/'rc-2f2d62d750'/.test(appCfg), "URL scheme includes rc-2f2d62d750 (RevenueCat return)");
 
 const eas = read('eas.json');
 for (const profile of ['development', 'preview', 'production']) ck(new RegExp(`"${profile}"`).test(eas), `eas.json profile: ${profile}`);

@@ -46,6 +46,7 @@ const SOURCES = [
   'src/cloud/revenuecat/premiumMachine.ts',
   'src/cloud/revenuecat/serverSync.ts',
   'src/cloud/archive/archiveValidate.ts',
+  'src/cloud/archive/archiveService.ts',
   'src/cloud/analytics/analytics.ts',
 ];
 
