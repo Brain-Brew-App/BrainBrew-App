@@ -82,7 +82,8 @@
     "supabase:verify-gameplay": "node scripts/db/with-secrets.mjs node scripts/db/remote-gameplay-check.mjs",
     "db:admin-test": "node scripts/db/admin-test.mjs",
     "db:analytics-test": "node scripts/db/analytics-test.mjs",
-    "db:rbac-parity-test": "node scripts/db/rbac-parity-test.mjs"
+    "db:rbac-parity-test": "node scripts/db/rbac-parity-test.mjs",
+    "db:content-mutations-test": "node scripts/db/content-mutations-test.mjs"
   },
   "private": true
 }

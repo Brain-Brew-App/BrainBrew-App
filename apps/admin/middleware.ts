@@ -1,22 +1,25 @@
 /**
- * Edge middleware — (1) a strict, per-request NONCE-based Content-Security-Policy
- * (Next.js needs its inline bootstrap scripts allowed via a nonce, not blanket
- * 'unsafe-inline'), and (2) an auth gate that redirects unauthenticated requests
- * to /login. The authoritative check is `requireAdmin()` in each server
- * component/action; this is defence in depth + session refresh.
+ * Edge middleware — per-request nonce CSP + Supabase session refresh.
+ *
+ * CRITICAL (Phase 7H.1 fix): when Supabase refreshes+rotates the session token in
+ * middleware, the new cookies must be written to BOTH the response (for the
+ * browser) AND the forwarded REQUEST (so the same-request Server Component render
+ * reads the fresh access token). The 7H version only wrote the response, so after
+ * a refresh the page saw the old, now-rotated refresh token and bounced valid
+ * admins to /login — intermittently, only in a browser with a session older than
+ * the access-token TTL (hence "works in Incognito, fails in the normal browser").
+ * This is the officially-documented @supabase/ssr Next.js pattern.
  */
 
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-const PUBLIC_PATHS = ['/login', '/denied'];
+const PUBLIC_PATHS = ['/login', '/denied', '/account'];
 
 function buildCsp(nonce: string): string {
   const prod = process.env.NODE_ENV === 'production';
   return [
     "default-src 'self'",
-    // Nonce + strict-dynamic lets Next's bootstrap scripts run and load their
-    // chunks, while still blocking arbitrary injected inline scripts.
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${prod ? '' : " 'unsafe-eval'"}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data:",
@@ -29,46 +32,47 @@ function buildCsp(nonce: string): string {
   ].join('; ');
 }
 
-/** Copy the CSP + nonce headers onto any response we return (incl. redirects). */
-function withCsp(res: NextResponse, csp: string): NextResponse {
-  res.headers.set('Content-Security-Policy', csp);
-  return res;
-}
-
 export async function middleware(req: NextRequest) {
   const nonce = btoa(crypto.randomUUID());
   const csp = buildCsp(nonce);
 
-  // Pass the nonce + CSP to the render pass so Next applies the nonce to its scripts.
+  // Nonce + CSP travel on the REQUEST headers so Next stamps its scripts.
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set('x-nonce', nonce);
   requestHeaders.set('Content-Security-Policy', csp);
 
-  const res = withCsp(NextResponse.next({ request: { headers: requestHeaders } }), csp);
+  let response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.set('Content-Security-Policy', csp);
 
-  const url = req.nextUrl.pathname;
-  if (PUBLIC_PATHS.some((p) => url.startsWith(p))) return res;
+  const path = req.nextUrl.pathname;
+  if (PUBLIC_PATHS.some((p) => path.startsWith(p))) return response;
 
-  const supa = createServerClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => req.cookies.getAll(),
-        setAll: (toSet: { name: string; value: string; options?: Record<string, unknown> }[]) =>
-          toSet.forEach(({ name, value, options }) => res.cookies.set(name, value, options)),
+  const supabase = createServerClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
+    cookies: {
+      getAll: () => req.cookies.getAll(),
+      setAll: (toSet: { name: string; value: string; options?: Record<string, unknown> }[]) => {
+        // (1) reflect the refreshed cookies into the forwarded request so THIS
+        // request's page render sees the fresh session (no double refresh / rotation race)…
+        toSet.forEach(({ name, value }) => req.cookies.set(name, value));
+        requestHeaders.set('cookie', req.cookies.getAll().map((c) => `${c.name}=${c.value}`).join('; '));
+        response = NextResponse.next({ request: { headers: requestHeaders } });
+        response.headers.set('Content-Security-Policy', csp);
+        // …and (2) write them to the response so the browser stores them.
+        toSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
       },
     },
-  );
-  const { data: { user } } = await supa.auth.getUser();
+  });
+
+  const { data: { user } } = await supabase.auth.getUser(); // refreshes if needed; cookies propagate via setAll
   if (!user) {
     const to = req.nextUrl.clone();
     to.pathname = '/login';
-    const redirect = withCsp(NextResponse.redirect(to), csp);
-    res.cookies.getAll().forEach((c) => redirect.cookies.set(c)); // preserve refreshed session cookies
-    return redirect;
+    const redirectRes = NextResponse.redirect(to);
+    redirectRes.headers.set('Content-Security-Policy', csp);
+    response.cookies.getAll().forEach((c) => redirectRes.cookies.set(c)); // carry cleared/refreshed cookies
+    return redirectRes;
   }
-  return res;
+  return response;
 }
 
 export const config = {

@@ -2,6 +2,7 @@ import { requireCapability, contextCan } from '@/lib/auth';
 import { adminClient } from '@/lib/supabase';
 import { writeAudit } from '@/lib/audit';
 import { Freshness, num, pct, StateNote } from '@/components/ui';
+import { RetireForm, DeleteDraftForm } from './form';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,6 +71,21 @@ export default async function PuzzleDetail(
             </>
           ) : <a className="pill danger" style={{ textDecoration: 'none' }} href={`?reveal=1`}>Reveal answer key (audited)</a>}
       </div>
+
+      {contextCan(ctx, 'manage_content') && (
+        <>
+          <h2 style={{ marginTop: 24 }}>Operations</h2>
+          <div className="card" style={{ display: 'grid', gap: 16 }}>
+            {detail.status !== 'retired'
+              ? <RetireForm id={String(detail.puzzle_id)} />
+              : <StateNote kind="unavailable">Already retired.</StateNote>}
+            {detail.status === 'draft' && !((detail.scheduled_in as unknown[])?.length) && <DeleteDraftForm id={String(detail.puzzle_id)} />}
+          </div>
+          <p className="faint" style={{ marginTop: 8 }}>
+            Immutable-content edits (approved/scheduled/used puzzles) create a new version rather than mutating history — that authoring workflow is the next content-ops milestone. Live pack membership and answers are never changed here.
+          </p>
+        </>
+      )}
     </>
   );
 }

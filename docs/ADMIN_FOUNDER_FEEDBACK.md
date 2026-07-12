@@ -17,3 +17,11 @@ An item is only closed after it is verified live.
 - Items 6 and 7 were live deployment bugs found during bring-up (fixed in the same
   session). Items 1, 3, 4, 5 are the 7H build-out. Item 2 was a clarification (real,
   not fake — the dashboard faithfully reports a mostly-test dataset).
+
+## Phase 7H.1 — auth reliability (root-caused + fixed)
+
+| # | Problem | Root cause | Fix | Verified |
+| --- | --- | --- | --- | --- |
+| 8 | Login works in Incognito, fails in normal browser | Middleware refreshed+rotated the session token but wrote cookies only to the response, not the forwarded request → same-request page saw the old rotated token → valid admin bounced to /login (only on sessions older than the access-token TTL) | Official @supabase/ssr middleware pattern (write refreshed cookies to request AND response) + robust sign-out cookie clearing + /login "Reset session" + /account mismatch page | Build green; logic verified; Founder to confirm in normal browser via QA checklist |
+
+Vercel-token suspicion: **disproven** — the deploy token is never a runtime env var, never read by admin code, and revoking it cannot revoke Supabase sessions. See ADMIN_AUTH_SESSION_RELIABILITY.md.

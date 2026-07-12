@@ -1385,6 +1385,15 @@ export type Database = {
         Args: { p_limit?: number; p_offset?: number; p_status?: string }
         Returns: Json
       }
+      admin_delete_unused_draft: {
+        Args: {
+          p_by: string
+          p_puzzle_id: string
+          p_reason: string
+          p_role: string
+        }
+        Returns: Json
+      }
       admin_engine_registry: { Args: never; Returns: Json }
       admin_engine_stats: {
         Args: { p_from: string; p_to: string }
@@ -1430,6 +1439,15 @@ export type Database = {
         Returns: Json
       }
       admin_retention: { Args: { p_from: string; p_to: string }; Returns: Json }
+      admin_retire_puzzle: {
+        Args: {
+          p_by: string
+          p_puzzle_id: string
+          p_reason: string
+          p_role: string
+        }
+        Returns: Json
+      }
       admin_revenue_snapshot: { Args: never; Returns: Json }
       admin_role_of: {
         Args: { p_user: string }
