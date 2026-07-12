@@ -42,7 +42,12 @@ Evidence required.**
 - [ ] Puzzles list/detail; answer key view is audited · Puzzles · Founder/Content · open puzzle, reveal answer · audited; correct data · High.
 - [ ] Retire (unused) / retire blocked (future pack) · Puzzle detail · test fixtures · retire · history kept; future-ref blocked · High.
 - [ ] Delete unused draft (reauth + typed confirm); used denied · Puzzle detail · test draft · delete · works only for eligible draft · **High**.
-- [ ] **Authoring UI (create → build → validate → preview → review → approve → reserve)** · Authoring · Content/Founder · author a test puzzle · canonical build+validate; two-person approval · **High** · *milestone not yet built — backend live/tested.*
+- [ ] **Authoring UI (create → build → validate → preview → review → approve → reserve)** · Authoring · Content/Founder · author a test puzzle · canonical build+validate; two-person approval · **High** · *canonical build/validate boundary live/tested (7H.3.1); 15-engine forms + preview UI still to build (7H.3.2–3).*
+
+## Admin — authoring canonical boundary (7H.3.1, automated; human spot-check deferred)
+- [ ] Build a candidate for each of the 15 engines through the form → `buildCandidateAction`; validation findings render clearly; a failing build shows a safe error, never a partial save · Authoring · Content/Founder · *forms not yet built; boundary + action live/tested by `test:authoring-boundary`.* · **High** · screenshots per engine.
+- [ ] Answer overlay appears only for reviewer roles with recent auth; hidden otherwise · Authoring preview · Content vs Viewer · reveal answer · gated + audited · **High**.
+- [ ] Version-pinning surfaces re-review when a draft is rebuilt under a newer builder/validator (diff shown) · Authoring · Content · rebuild · stale review cleared · Med.
 
 ## Admin — pack operations (milestone)
 - [ ] Draft pack create/suggest/validate/schedule/publish (isolated future test date); live mutation blocked; void fixture · Packs · Founder/Content · *not yet built — read pages + safety rules live.* · **High**.

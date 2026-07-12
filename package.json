@@ -23,6 +23,7 @@
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.4",
     "@types/react": "~19.2.2",
+    "esbuild": "^0.28.1",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -85,7 +86,10 @@
     "db:rbac-parity-test": "node scripts/db/rbac-parity-test.mjs",
     "db:content-mutations-test": "node scripts/db/content-mutations-test.mjs",
     "db:authoring-test": "node scripts/db/content-authoring-test.mjs",
-    "test:canonical-authoring": "node scripts/canonical-authoring-test.mjs"
+    "test:canonical-authoring": "node scripts/canonical-authoring-test.mjs",
+    "authoring:bundle": "node scripts/build-authoring-bundle.mjs",
+    "authoring:bundle:check": "node scripts/build-authoring-bundle.mjs --check",
+    "test:authoring-boundary": "node scripts/authoring-boundary-test.mjs"
   },
   "private": true
 }

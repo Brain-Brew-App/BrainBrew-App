@@ -19,13 +19,16 @@ pass `validatePuzzle` with zero findings, all 15 engines represented, and a
 deliberately-broken candidate is caught. The Admin build→validate step calls exactly
 these functions server-side; validation logic is **never** re-implemented in the UI.
 
-> **Deployment boundary (important).** The `brainbrew-admin` Vercel project is
-> rooted at `apps/admin`, so it cannot import `../../src/content/*` at Vercel build
-> time. The build/validate step therefore runs through a **shared boundary** — the
-> chosen mechanism for the authoring-UI milestone is a small server module that
-> bundles the canonical builder/validator (either a workspace package published to
-> `apps/admin`, or a dedicated `authoring` Edge Function that imports the canonical
-> code). The backend state machine below is deployed and does not depend on this.
+> **Deployment boundary (RESOLVED — Phase 7H.3.1).** The `brainbrew-admin` Vercel
+> project is rooted at `apps/admin` and cannot import `../../src/content/*` at build
+> time. The build/validate step now runs through a **generated single-source bundle**:
+> esbuild compiles the pure entry `src/content/authoringBoundary.ts` (which re-exports
+> the canonical builders + validator + registry + split + `canonicalStringify`) into
+> `apps/admin/lib/authoring/canonical.generated.mjs`, imported by a `server-only`
+> wrapper. It is a mechanical build artifact of ONE source (no duplication), guarded
+> by a staleness check and proven **byte-identical to the content pipeline for all
+> 326 puzzles** (`npm run test:authoring-boundary`). Full decision + rejected options:
+> [ADMIN_AUTHORING_ARCHITECTURE.md](ADMIN_AUTHORING_ARCHITECTURE.md).
 
 ## 2. Draft model (implemented + tested)
 

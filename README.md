@@ -150,6 +150,8 @@ checks below prove the whole path locally (PGlite; no remote needed):
 | `npm run db:admin-test` | admin RBAC matrix, audit immutability, maintenance enforcement, KPI formulas, security |
 | `npm run db:authoring-test` | content authoring review state machine (validation-gates-approval, two-person control, promote-to-reserve, security) |
 | `npm run test:canonical-authoring` | canonical builder+validator reuse (326 puzzles valid, broken candidates caught) |
+| `npm run test:authoring-boundary` | the Admin's generated canonical bundle is byte-identical to the content pipeline (326 puzzles: hash, split, validator) + build failures handled |
+| `npm run authoring:bundle:check` | the committed Admin authoring bundle is not stale vs `src/content` |
 | `npm run db:content-mutations-test` | retire/delete lifecycle guards (history-safe) |
 | `npm run db:analytics-test` | event ingestion (allowlist/dedup/forbidden-fields/spoofed-user), rollups (idempotent+correcting), retention, funnel, exclusion, security |
 | `npm run db:entitlement-map-test` | RevenueCat subscriber → entitlement-state mapping (premium/trial/grace/billing/expired/refunded/free) |
