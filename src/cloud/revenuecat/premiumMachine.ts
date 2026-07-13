@@ -58,6 +58,15 @@ export type PremiumEvent =
   | { type: 'ACCOUNT_SWITCH' }
   | { type: 'SIGN_OUT' };
 
+/**
+ * Can a purchase legitimately start from here? The CONTROLLER must consult this
+ * before calling the SDK: if the machine would ignore PURCHASE_START, the SDK must
+ * not run either, or the user gets charged with no UI feedback.
+ */
+export function canStartPurchase(ctx: PremiumContext): boolean {
+  return !PURCHASE_BLOCKED.has(ctx.state);
+}
+
 export function initialContext(): PremiumContext {
   return { state: 'idle', isPremium: false, offering: null, offeringError: null, diagnosticRef: null };
 }
@@ -65,6 +74,25 @@ export function initialContext(): PremiumContext {
 const READY = (ctx: PremiumContext): PremiumState => (ctx.isPremium ? 'ready_premium' : 'ready_free');
 /** A purchase/restore is in progress — new taps must be ignored (single-flight). */
 const BUSY = new Set<PremiumState>(['purchasing', 'finalizing', 'restoring']);
+
+/**
+ * States a user can be SITTING IN with a visible, tappable plan list. A purchase
+ * must be startable from every one of them.
+ *
+ * This is deliberately broader than "ready": after a cancelled purchase, a restore
+ * that found nothing, a conflict, or a transient error, the paywall is still on
+ * screen and the plans are still tappable. Previously only `ready_*` was accepted,
+ * so a tap from (say) `nothing_to_restore` ran the real SDK purchase — charging the
+ * user — while the machine ignored the event and the UI never entered `finalizing`.
+ * A charge with no visible progress is the worst possible outcome, so the guard now
+ * excludes only genuinely-not-purchasable states.
+ */
+const PURCHASE_BLOCKED = new Set<PremiumState>([
+  'idle', 'loading_entitlement', 'loading_offering',   // nothing to buy yet
+  'unsupported_platform', 'store_unavailable',         // no store to buy from
+  'sync_delayed',                                      // already paid — never re-charge
+  ...BUSY,                                             // single-flight
+]);
 
 export function reduce(ctx: PremiumContext, ev: PremiumEvent): PremiumContext {
   switch (ev.type) {
@@ -91,8 +119,9 @@ export function reduce(ctx: PremiumContext, ev: PremiumEvent): PremiumContext {
       return { ...ctx, offeringError: ev.reason, state: BUSY.has(ctx.state) ? ctx.state : READY(ctx) };
 
     case 'PURCHASE_START':
-      if (BUSY.has(ctx.state)) return ctx;                 // single-flight: collapse duplicate taps
-      if (ctx.state !== 'ready_free' && ctx.state !== 'ready_premium') return ctx;
+      // Blocks duplicate taps (BUSY), pre-offering states, and sync_delayed (already
+      // paid — Retry Sync/Restore are the recoveries there, never a second charge).
+      if (PURCHASE_BLOCKED.has(ctx.state)) return ctx;
       return { ...ctx, state: 'purchasing', diagnosticRef: null };
 
     case 'PURCHASE_RESULT': {

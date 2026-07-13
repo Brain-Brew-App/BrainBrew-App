@@ -1,0 +1,448 @@
+
+> brainbrew-app@1.0.0 prestart
+> node scripts/preflight.mjs
+
+[2m✓ preflight: brainbrew-app · port 8081 free · background #0A1020[0m
+
+> brainbrew-app@1.0.0 start
+> expo start --dev-client
+
+env: load .env
+env: export EXPO_PUBLIC_CONTENT_SOURCE EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPABASE_URL
+Starting project at C:\Users\ASRock\Desktop\BrainBrew App\brainbrew-app
+Starting Metro Bundler
+
+Waiting on http://localhost:8081
+
+Logs for your project will appear below.
+Android Bundled 505ms index.ts (826 modules)
+ ERROR  [Error: fetch failed: java.net.UnknownHostException: Unable to resolve host "kfcshiktovyjcoepnrfw.supabase.co": No address associated with hostname]
+ LOG  [cloud] get-daily-pack · 0 · 56900ms · error=timeout
+ WARN  @supabase/gotrue-js: Lock "lock:sb-kfcshiktovyjcoepnrfw-auth-token" acquisition timed out after 0ms. This may be caused by another operation holding the lock. Consider increasing lockAcquireTimeout or checking for stuck operations.
+Android Bundled 271ms node_modules\@react-native-async-storage\async-storage\src\index.ts (547 modules)
+ LOG  [cloud] get-today-player-status · 200 · 60497ms · error=anonymous_account
+ LOG  [cloud] get-today-player-status · 200 · 291ms · error=anonymous_account
+ LOG  [cloud] get-daily-pack · 200 · 1552ms
+Android Bundled 51ms index.ts (1 module)
+ WARN  @supabase/gotrue-js: Lock "lock:sb-kfcshiktovyjcoepnrfw-auth-token" acquisition timed out after 0ms. This may be caused by another operation holding the lock. Consider increasing lockAcquireTimeout or checking for stuck operations.
+Android Bundled 25ms node_modules\@react-native-async-storage\async-storage\src\index.ts (1 module)
+ LOG  [cloud] get-today-player-status · 200 · 1482ms · error=anonymous_account
+ LOG  [cloud] get-daily-pack · 200 · 1515ms
+ LOG  [cloud] get-today-player-status · 200 · 1970ms · error=anonymous_account
+ LOG  [cloud] get-daily-pack · 200 · 2652ms
+Android Bundled 552ms node_modules\react-native-purchases\dist\index.js (631 modules)
+ LOG  [revenuecat] configured mode=test_store appUserIdPrefix=ed382b9b…
+ WARN  [RevenueCat] Using a Test Store API key.
+The Test Store is for development only. Never use a Test Store API key in production. Our SDK will crash if using it in production. Test Store purchases are simulated, do not use Google Play or Amazon store, and generate no revenue. Apps submitted with a Test Store API key will be rejected during App Review.
+ DEBUG  [RevenueCat] ℹ️ Debug logging enabled
+ DEBUG  [RevenueCat] ℹ️ SDK Version - 10.12.0
+ DEBUG  [RevenueCat] ℹ️ Package name - com.brainbrew.app
+ DEBUG  [RevenueCat] 👤 Initial App User ID - ed382b9b-a72f-4d56-90ad-650e35026475
+ DEBUG  [RevenueCat] ℹ️ Purchases configured with response verification: DISABLED
+ DEBUG  [RevenueCat] 👤 Identifying App User ID: ed382b9b-a72f-4d56-90ad-650e35026475
+ DEBUG  [RevenueCat] ℹ️ Deleting old synced subscriber attributes that don't belong to ed382b9b-a72f-4d56-90ad-650e35026475
+ DEBUG  [RevenueCat] ℹ️ Listener set
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: Starting connection
+ DEBUG  [RevenueCat] ℹ️ Sending latest CustomerInfo to listener.
+ DEBUG  [RevenueCat] ℹ️ Updating pending purchase queue
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryPurchases - returning empty map
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: getStorefront - returning US by default
+ DEBUG  [RevenueCat] ℹ️ Cleaning previously sent tokens
+ DEBUG  [RevenueCat] Billing connected with country code: US
+ DEBUG  [RevenueCat] ℹ️ Saving tokens []
+ DEBUG  [RevenueCat] ℹ️ App foregrounded
+ DEBUG  [RevenueCat] ℹ️ CustomerInfo cache is stale, updating from network in foreground.
+ DEBUG  [RevenueCat] ℹ️ Tokens already posted: []
+ DEBUG  [RevenueCat] Retrieving customer info with policy: FETCH_CURRENT
+ DEBUG  [RevenueCat] ℹ️ No pending purchases to sync
+ DEBUG  [RevenueCat] ℹ️ Updating pending purchase queue
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryPurchases - returning empty map
+ DEBUG  [RevenueCat] ℹ️ Cleaning previously sent tokens
+ DEBUG  [RevenueCat] ℹ️ Saving tokens []
+ DEBUG  [RevenueCat] ℹ️ Tokens already posted: []
+ DEBUG  [RevenueCat] ℹ️ No pending purchases to sync
+ DEBUG  [RevenueCat] ℹ️ Offerings cache is stale, updating from network in foreground
+ DEBUG  [RevenueCat] 😻 Start Offerings update from network.
+ DEBUG  [RevenueCat] Request already scheduled with jitter delay, adding existing callbacks to unjittered request with key: BackgroundAwareCallbackCacheKey(cacheKey=[/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/offerings], appInBackground=false)
+ DEBUG  [RevenueCat] ℹ️ Updating pending purchase queue
+ DEBUG  [RevenueCat] Request already scheduled with jitter delay, adding existing callbacks to unjittered request with key: BackgroundAwareCallbackCacheKey(cacheKey=[/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475], appInBackground=false)
+ DEBUG  [RevenueCat] ℹ️ No subscriber attributes to synchronize.
+ DEBUG  [RevenueCat] Getting storefront from cache was null.
+ LOG  [RevenueCat] No new events to sync.
+ LOG  [RevenueCat] No new events to sync.
+ LOG  [RevenueCat] No legacy events to sync. Skipping legacy flush.
+ DEBUG  [RevenueCat] ℹ️ No cached Offerings, fetching from network
+ DEBUG  [RevenueCat] 😻 Start Offerings update from network.
+ DEBUG  [RevenueCat] Same call already in progress, adding to callbacks map with key: BackgroundAwareCallbackCacheKey(cacheKey=[/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/offerings], appInBackground=false)
+ DEBUG  [RevenueCat] Request already scheduled with jitter delay, adding existing callbacks to unjittered request with key: BackgroundAwareCallbackCacheKey(cacheKey=[/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/offerings], appInBackground=false)
+ DEBUG  [RevenueCat] API request started: GET /v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/offerings
+ DEBUG  [RevenueCat] API request completed with status: GET /v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/offerings 304
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryProductDetailsAsync for products: [monthly, yearly]
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryProductDetailsAsync for products: [monthly, yearly]
+ DEBUG  [RevenueCat] Same call already in progress, adding to callbacks map with key: /rcbilling/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/products?id=monthly&id=yearly
+ DEBUG  [RevenueCat] Getting storefront from cache was null.
+ DEBUG  [RevenueCat] API request started: GET /v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475
+ DEBUG  [RevenueCat] API request completed with status: GET /v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475 200
+ DEBUG  [RevenueCat] 😻 CustomerInfo updated from network.
+ DEBUG  [RevenueCat] ℹ️ CustomerInfo updated, sending to listener.
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryPurchases - returning empty map
+ DEBUG  [RevenueCat] ℹ️ Cleaning previously sent tokens
+ DEBUG  [RevenueCat] ℹ️ Saving tokens []
+ DEBUG  [RevenueCat] ℹ️ Tokens already posted: []
+ DEBUG  [RevenueCat] ℹ️ No pending purchases to sync
+ DEBUG  [RevenueCat] Getting storefront from cache was null.
+ DEBUG  [RevenueCat] API request started: GET /rcbilling/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/products?id=monthly&id=yearly
+ DEBUG  [RevenueCat] API request completed with status: GET /rcbilling/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/products?id=monthly&id=yearly 304
+ DEBUG  [RevenueCat] ℹ️ Building offerings response with 2 products
+ LOG  [RevenueCat] Offerings object created with 1 offerings
+ LOG  [RevenueCat] OfferingImagePreDownloader won't pre-download images
+ DEBUG  [RevenueCat] ℹ️ Building offerings response with 2 products
+ LOG  [RevenueCat] Offerings object created with 1 offerings
+ LOG  [RevenueCat] OfferingImagePreDownloader won't pre-download images
+ LOG  [revenuecat] mode=test_store offering=default monthly=monthly annual=yearly
+ DEBUG  [RevenueCat] ℹ️ Restoring purchases
+ WARN  [RevenueCat] ⚠️ allowSharingPlayStoreAccount is set to false and restorePurchases has been called. This will 'alias' any app user id's sharing the same receipt. Are you sure you want to do this? More info here: https://errors.rev.cat/allowsSharingPlayStoreAccount
+ DEBUG  [RevenueCat] ℹ️ Restoring purchases not available in test store. Returning current CustomerInfo.
+ DEBUG  [RevenueCat] Retrieving customer info with policy: CACHED_OR_FETCHED
+ DEBUG  [RevenueCat] ℹ️ Vending CustomerInfo from cache.
+ DEBUG  [RevenueCat] ℹ️ Checking if cache is stale AppInBackground false
+ DEBUG  [RevenueCat] ℹ️ Vending Offerings from cache
+ DEBUG  [RevenueCat] ℹ️ Checking if cache is stale AppInBackground false
+ DEBUG  [RevenueCat] 💰 Purchase started - product:  SimulatedStorePurchasingData(productId=monthly, productType=SUBS, storeProduct=TestStoreProduct(id=monthly, name=brainbrew_premium_monthly, title=brainbrew_premium_monthly, description=, price=Price(formatted=US$9.99, amountMicros=9990000, currencyCode=USD), period=Period(value=1, unit=MONTH, iso8601=P1M), freeTrialPricingPhase=null, introPricePricingPhase=null, presentedOfferingContext=PresentedOfferingContext(offeringIdentifier=default, placementIdentifier=null, targetingContext=null)))  - offering: default
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: makePurchaseAsync for product: monthly
+ DEBUG  [RevenueCat] [Test store] Performing test purchase. This purchase won't appear in production.
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryProductDetailsAsync for products: [monthly]
+ DEBUG  [RevenueCat] Getting storefront from cache was null.
+ LOG  [RevenueCat] No new events to sync.
+ LOG  [RevenueCat] No new events to sync.
+ DEBUG  [RevenueCat] API request started: GET /rcbilling/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/products?id=monthly
+ DEBUG  [RevenueCat] API request completed with status: GET /rcbilling/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/products?id=monthly 304
+ DEBUG  [RevenueCat] Store product found for transaction: TestStoreProduct(id=monthly, name=brainbrew_premium_monthly, title=brainbrew_premium_monthly, description=, price=Price(formatted=US$9.99, amountMicros=9990000, currencyCode=USD), period=Period(value=1, unit=MONTH, iso8601=P1M), freeTrialPricingPhase=null, introPricePricingPhase=null, presentedOfferingContext=null)
+ DEBUG  [RevenueCat] Local transaction metadata cache updated
+ DEBUG  [RevenueCat] ℹ️ Found 0 unsynced attributes for App User ID: ed382b9b-a72f-4d56-90ad-650e35026475
+ DEBUG  [RevenueCat] Getting storefront from cache was null.
+ DEBUG  [RevenueCat] API request started: POST /v1/receipts
+ DEBUG  [RevenueCat] API request completed with status: POST /v1/receipts 200
+ LOG  [RevenueCat] Cleared local transaction metadata for 1 token(s)
+ DEBUG  [RevenueCat] ℹ️ CustomerInfo updated, sending to listener.
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: consumeAndSave - no-op for test store
+ DEBUG  [RevenueCat] ℹ️ Vending Offerings from cache
+ DEBUG  [RevenueCat] ℹ️ Checking if cache is stale AppInBackground false
+ DEBUG  [RevenueCat] ℹ️ Offerings cache is stale, updating from network in foreground
+ DEBUG  [RevenueCat] 😻 Start Offerings update from network.
+ DEBUG  [RevenueCat] Getting storefront from cache was null.
+ DEBUG  [RevenueCat] Request already scheduled with jitter delay, adding existing callbacks to unjittered request with key: BackgroundAwareCallbackCacheKey(cacheKey=[/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/offerings], appInBackground=false)
+ LOG  [revenuecat] mode=test_store offering=default monthly=monthly annual=yearly
+ DEBUG  [RevenueCat] API request started: GET /v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/offerings
+ DEBUG  [RevenueCat] API request completed with status: GET /v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/offerings 304
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryProductDetailsAsync for products: [monthly, yearly]
+ DEBUG  [RevenueCat] Getting storefront from cache was null.
+ DEBUG  [RevenueCat] API request started: GET /rcbilling/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/products?id=monthly&id=yearly
+ DEBUG  [RevenueCat] API request completed with status: GET /rcbilling/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/products?id=monthly&id=yearly 304
+ DEBUG  [RevenueCat] ℹ️ Building offerings response with 2 products
+ LOG  [RevenueCat] Offerings object created with 1 offerings
+ LOG  [RevenueCat] OfferingImagePreDownloader won't pre-download images
+ DEBUG  [RevenueCat] ℹ️ Vending Offerings from cache
+ DEBUG  [RevenueCat] ℹ️ Checking if cache is stale AppInBackground false
+ LOG  [revenuecat] mode=test_store offering=default monthly=monthly annual=yearly
+ LOG  [RevenueCat] No new events to sync.
+ LOG  [RevenueCat] No new events to sync.
+ DEBUG  [RevenueCat] ℹ️ App backgrounded
+ DEBUG  [RevenueCat] ℹ️ No subscriber attributes to synchronize.
+ LOG  [RevenueCat] No new events to sync.
+ LOG  [RevenueCat] No new events to sync.
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: showInAppMessagesIfNeeded - no-op for test store
+ DEBUG  [RevenueCat] ℹ️ App foregrounded
+ DEBUG  [RevenueCat] ℹ️ Checking if cache is stale AppInBackground false
+ DEBUG  [RevenueCat] ℹ️ Checking if cache is stale AppInBackground false
+ DEBUG  [RevenueCat] ℹ️ Updating pending purchase queue
+ DEBUG  [RevenueCat] ℹ️ No subscriber attributes to synchronize.
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryPurchases - returning empty map
+ DEBUG  [RevenueCat] ℹ️ Cleaning previously sent tokens
+ DEBUG  [RevenueCat] ℹ️ Saving tokens []
+ DEBUG  [RevenueCat] ℹ️ Tokens already posted: []
+ DEBUG  [RevenueCat] ℹ️ No pending purchases to sync
+ LOG  [RevenueCat] No new events to sync.
+ LOG  [RevenueCat] No new events to sync.
+ DEBUG  [RevenueCat] ℹ️ Vending Offerings from cache
+ DEBUG  [RevenueCat] ℹ️ Checking if cache is stale AppInBackground false
+ LOG  [revenuecat] mode=test_store offering=default monthly=monthly annual=yearly
+ DEBUG  [RevenueCat] ℹ️ Vending Offerings from cache
+ DEBUG  [RevenueCat] ℹ️ Checking if cache is stale AppInBackground false
+ LOG  [revenuecat] mode=test_store offering=default monthly=monthly annual=yearly
+ DEBUG  [RevenueCat] ℹ️ Vending Offerings from cache
+ DEBUG  [RevenueCat] ℹ️ Checking if cache is stale AppInBackground false
+ LOG  [revenuecat] mode=test_store offering=default monthly=monthly annual=yearly
+ DEBUG  [RevenueCat] ℹ️ Vending Offerings from cache
+ DEBUG  [RevenueCat] ℹ️ Checking if cache is stale AppInBackground false
+ DEBUG  [RevenueCat] 💰 Purchase started - product:  SimulatedStorePurchasingData(productId=yearly, productType=SUBS, storeProduct=TestStoreProduct(id=yearly, name=brainbrew_premium_annual, title=brainbrew_premium_annual, description=, price=Price(formatted=US$79.98, amountMicros=79990000, currencyCode=USD), period=Period(value=1, unit=YEAR, iso8601=P1Y), freeTrialPricingPhase=null, introPricePricingPhase=null, presentedOfferingContext=PresentedOfferingContext(offeringIdentifier=default, placementIdentifier=null, targetingContext=null)))  - offering: default
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: makePurchaseAsync for product: yearly
+Android Bundled 34ms index.ts (1 module)
+ WARN  @supabase/gotrue-js: Lock "lock:sb-kfcshiktovyjcoepnrfw-auth-token" acquisition timed out after 0ms. This may be caused by another operation holding the lock. Consider increasing lockAcquireTimeout or checking for stuck operations.
+Android Bundled 21ms node_modules\@react-native-async-storage\async-storage\src\index.ts (1 module)
+ LOG  [cloud] get-today-player-status · 200 · 1164ms · error=anonymous_account
+ LOG  [cloud] get-daily-pack · 200 · 1573ms
+Android Bundled 27ms node_modules\react-native-purchases\dist\index.js (1 module)
+ LOG  [revenuecat] configured mode=test_store appUserIdPrefix=ed382b9b…
+ WARN  [RevenueCat] Using a Test Store API key.
+The Test Store is for development only. Never use a Test Store API key in production. Our SDK will crash if using it in production. Test Store purchases are simulated, do not use Google Play or Amazon store, and generate no revenue. Apps submitted with a Test Store API key will be rejected during App Review.
+ DEBUG  [RevenueCat] ℹ️ Debug logging enabled
+ DEBUG  [RevenueCat] ℹ️ SDK Version - 10.12.0
+ DEBUG  [RevenueCat] ℹ️ Package name - com.brainbrew.app
+ DEBUG  [RevenueCat] 👤 Initial App User ID - ed382b9b-a72f-4d56-90ad-650e35026475
+ DEBUG  [RevenueCat] ℹ️ Purchases configured with response verification: DISABLED
+ DEBUG  [RevenueCat] 👤 Identifying App User ID: ed382b9b-a72f-4d56-90ad-650e35026475
+ DEBUG  [RevenueCat] ℹ️ Deleting old synced subscriber attributes that don't belong to ed382b9b-a72f-4d56-90ad-650e35026475
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: Starting connection
+ DEBUG  [RevenueCat] ℹ️ Listener set
+ DEBUG  [RevenueCat] ℹ️ Sending latest CustomerInfo to listener.
+ DEBUG  [RevenueCat] ℹ️ Updating pending purchase queue
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: getStorefront - returning US by default
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryPurchases - returning empty map
+ DEBUG  [RevenueCat] Billing connected with country code: US
+ DEBUG  [RevenueCat] ℹ️ Cleaning previously sent tokens
+ DEBUG  [RevenueCat] ℹ️ App foregrounded
+ DEBUG  [RevenueCat] ℹ️ CustomerInfo cache is stale, updating from network in foreground.
+ DEBUG  [RevenueCat] ℹ️ Saving tokens []
+ DEBUG  [RevenueCat] ℹ️ Tokens already posted: []
+ DEBUG  [RevenueCat] ℹ️ No pending purchases to sync
+ DEBUG  [RevenueCat] Retrieving customer info with policy: FETCH_CURRENT
+ DEBUG  [RevenueCat] ℹ️ Updating pending purchase queue
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryPurchases - returning empty map
+ DEBUG  [RevenueCat] ℹ️ Offerings cache is stale, updating from network in foreground
+ DEBUG  [RevenueCat] 😻 Start Offerings update from network.
+ DEBUG  [RevenueCat] ℹ️ Cleaning previously sent tokens
+ DEBUG  [RevenueCat] ℹ️ Saving tokens []
+ DEBUG  [RevenueCat] Request already scheduled with jitter delay, adding existing callbacks to unjittered request with key: BackgroundAwareCallbackCacheKey(cacheKey=[/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/offerings], appInBackground=false)
+ DEBUG  [RevenueCat] ℹ️ Tokens already posted: []
+ DEBUG  [RevenueCat] ℹ️ No pending purchases to sync
+ DEBUG  [RevenueCat] Request already scheduled with jitter delay, adding existing callbacks to unjittered request with key: BackgroundAwareCallbackCacheKey(cacheKey=[/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475], appInBackground=false)
+ DEBUG  [RevenueCat] Getting storefront from cache was null.
+ DEBUG  [RevenueCat] ℹ️ Updating pending purchase queue
+ DEBUG  [RevenueCat] ℹ️ No subscriber attributes to synchronize.
+ LOG  [RevenueCat] No new events to sync.
+ LOG  [RevenueCat] No new events to sync.
+ LOG  [RevenueCat] No legacy events to sync. Skipping legacy flush.
+ DEBUG  [RevenueCat] ℹ️ No cached Offerings, fetching from network
+ DEBUG  [RevenueCat] 😻 Start Offerings update from network.
+ DEBUG  [RevenueCat] Same call already in progress, adding to callbacks map with key: BackgroundAwareCallbackCacheKey(cacheKey=[/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/offerings], appInBackground=false)
+ DEBUG  [RevenueCat] Request already scheduled with jitter delay, adding existing callbacks to unjittered request with key: BackgroundAwareCallbackCacheKey(cacheKey=[/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/offerings], appInBackground=false)
+ DEBUG  [RevenueCat] API request started: GET /v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/offerings
+ DEBUG  [RevenueCat] API request completed with status: GET /v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/offerings 304
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryProductDetailsAsync for products: [monthly, yearly]
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryProductDetailsAsync for products: [monthly, yearly]
+ DEBUG  [RevenueCat] Same call already in progress, adding to callbacks map with key: /rcbilling/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/products?id=monthly&id=yearly
+ DEBUG  [RevenueCat] Getting storefront from cache was null.
+ DEBUG  [RevenueCat] API request started: GET /v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475
+ DEBUG  [RevenueCat] API request completed with status: GET /v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475 200
+ DEBUG  [RevenueCat] 😻 CustomerInfo updated from network.
+ DEBUG  [RevenueCat] ℹ️ CustomerInfo updated, sending to listener.
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryPurchases - returning empty map
+ DEBUG  [RevenueCat] ℹ️ Cleaning previously sent tokens
+ DEBUG  [RevenueCat] ℹ️ Saving tokens []
+ DEBUG  [RevenueCat] ℹ️ Tokens already posted: []
+ DEBUG  [RevenueCat] ℹ️ No pending purchases to sync
+ DEBUG  [RevenueCat] Getting storefront from cache was null.
+ DEBUG  [RevenueCat] API request started: GET /rcbilling/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/products?id=monthly&id=yearly
+ DEBUG  [RevenueCat] API request completed with status: GET /rcbilling/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/products?id=monthly&id=yearly 304
+ DEBUG  [RevenueCat] ℹ️ Building offerings response with 2 products
+ LOG  [RevenueCat] Offerings object created with 1 offerings
+ LOG  [RevenueCat] OfferingImagePreDownloader won't pre-download images
+ DEBUG  [RevenueCat] ℹ️ Building offerings response with 2 products
+ LOG  [RevenueCat] Offerings object created with 1 offerings
+ LOG  [RevenueCat] OfferingImagePreDownloader won't pre-download images
+ LOG  [revenuecat] mode=test_store offering=default monthly=monthly annual=yearly
+ DEBUG  [RevenueCat] ℹ️ Vending Offerings from cache
+ DEBUG  [RevenueCat] ℹ️ Checking if cache is stale AppInBackground false
+ DEBUG  [RevenueCat] 💰 Purchase started - product:  SimulatedStorePurchasingData(productId=monthly, productType=SUBS, storeProduct=TestStoreProduct(id=monthly, name=brainbrew_premium_monthly, title=brainbrew_premium_monthly, description=, price=Price(formatted=US$9.99, amountMicros=9990000, currencyCode=USD), period=Period(value=1, unit=MONTH, iso8601=P1M), freeTrialPricingPhase=null, introPricePricingPhase=null, presentedOfferingContext=PresentedOfferingContext(offeringIdentifier=default, placementIdentifier=null, targetingContext=null)))  - offering: default
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: makePurchaseAsync for product: monthly
+ DEBUG  [RevenueCat] [Test store] Performing test purchase. This purchase won't appear in production.
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryProductDetailsAsync for products: [monthly]
+ DEBUG  [RevenueCat] Getting storefront from cache was null.
+ LOG  [RevenueCat] No new events to sync.
+ LOG  [RevenueCat] No new events to sync.
+ DEBUG  [RevenueCat] API request started: GET /rcbilling/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/products?id=monthly
+ DEBUG  [RevenueCat] API request completed with status: GET /rcbilling/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/products?id=monthly 304
+ DEBUG  [RevenueCat] Store product found for transaction: TestStoreProduct(id=monthly, name=brainbrew_premium_monthly, title=brainbrew_premium_monthly, description=, price=Price(formatted=US$9.99, amountMicros=9990000, currencyCode=USD), period=Period(value=1, unit=MONTH, iso8601=P1M), freeTrialPricingPhase=null, introPricePricingPhase=null, presentedOfferingContext=null)
+ DEBUG  [RevenueCat] Local transaction metadata cache updated
+ DEBUG  [RevenueCat] ℹ️ Found 0 unsynced attributes for App User ID: ed382b9b-a72f-4d56-90ad-650e35026475
+ DEBUG  [RevenueCat] Getting storefront from cache was null.
+ DEBUG  [RevenueCat] API request started: POST /v1/receipts
+ DEBUG  [RevenueCat] API request completed with status: POST /v1/receipts 200
+ LOG  [RevenueCat] Cleared local transaction metadata for 1 token(s)
+ DEBUG  [RevenueCat] ℹ️ CustomerInfo updated, sending to listener.
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: consumeAndSave - no-op for test store
+Android Bundled 29ms index.ts (1 module)
+ WARN  @supabase/gotrue-js: Lock "lock:sb-kfcshiktovyjcoepnrfw-auth-token" acquisition timed out after 0ms. This may be caused by another operation holding the lock. Consider increasing lockAcquireTimeout or checking for stuck operations.
+Android Bundled 21ms node_modules\@react-native-async-storage\async-storage\src\index.ts (1 module)
+ LOG  [cloud] get-today-player-status · 200 · 1298ms · error=anonymous_account
+ LOG  [cloud] get-daily-pack · 200 · 2155ms
+Android Bundled 29ms node_modules\react-native-purchases\dist\index.js (1 module)
+ LOG  [revenuecat] configured mode=test_store appUserIdPrefix=ed382b9b…
+ WARN  [RevenueCat] Using a Test Store API key.
+The Test Store is for development only. Never use a Test Store API key in production. Our SDK will crash if using it in production. Test Store purchases are simulated, do not use Google Play or Amazon store, and generate no revenue. Apps submitted with a Test Store API key will be rejected during App Review.
+ DEBUG  [RevenueCat] ℹ️ Debug logging enabled
+ DEBUG  [RevenueCat] ℹ️ SDK Version - 10.12.0
+ DEBUG  [RevenueCat] ℹ️ Package name - com.brainbrew.app
+ DEBUG  [RevenueCat] 👤 Initial App User ID - ed382b9b-a72f-4d56-90ad-650e35026475
+ DEBUG  [RevenueCat] ℹ️ Purchases configured with response verification: DISABLED
+ DEBUG  [RevenueCat] 👤 Identifying App User ID: ed382b9b-a72f-4d56-90ad-650e35026475
+ DEBUG  [RevenueCat] ℹ️ Deleting old synced subscriber attributes that don't belong to ed382b9b-a72f-4d56-90ad-650e35026475
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: Starting connection
+ DEBUG  [RevenueCat] ℹ️ Listener set
+ DEBUG  [RevenueCat] ℹ️ Sending latest CustomerInfo to listener.
+ DEBUG  [RevenueCat] ℹ️ Updating pending purchase queue
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: getStorefront - returning US by default
+ DEBUG  [RevenueCat] Billing connected with country code: US
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryPurchases - returning empty map
+ DEBUG  [RevenueCat] ℹ️ App foregrounded
+ DEBUG  [RevenueCat] ℹ️ Cleaning previously sent tokens
+ DEBUG  [RevenueCat] ℹ️ CustomerInfo cache is stale, updating from network in foreground.
+ DEBUG  [RevenueCat] ℹ️ Saving tokens []
+ DEBUG  [RevenueCat] ℹ️ Tokens already posted: []
+ DEBUG  [RevenueCat] Retrieving customer info with policy: FETCH_CURRENT
+ DEBUG  [RevenueCat] ℹ️ No pending purchases to sync
+ DEBUG  [RevenueCat] ℹ️ Updating pending purchase queue
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryPurchases - returning empty map
+ DEBUG  [RevenueCat] ℹ️ Cleaning previously sent tokens
+ DEBUG  [RevenueCat] ℹ️ Offerings cache is stale, updating from network in foreground
+ DEBUG  [RevenueCat] ℹ️ Saving tokens []
+ DEBUG  [RevenueCat] 😻 Start Offerings update from network.
+ DEBUG  [RevenueCat] ℹ️ Tokens already posted: []
+ DEBUG  [RevenueCat] ℹ️ No pending purchases to sync
+ DEBUG  [RevenueCat] Request already scheduled with jitter delay, adding existing callbacks to unjittered request with key: BackgroundAwareCallbackCacheKey(cacheKey=[/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/offerings], appInBackground=false)
+ DEBUG  [RevenueCat] Request already scheduled with jitter delay, adding existing callbacks to unjittered request with key: BackgroundAwareCallbackCacheKey(cacheKey=[/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475], appInBackground=false)
+ DEBUG  [RevenueCat] ℹ️ Updating pending purchase queue
+ DEBUG  [RevenueCat] Getting storefront from cache was null.
+ DEBUG  [RevenueCat] ℹ️ No subscriber attributes to synchronize.
+ LOG  [RevenueCat] No new events to sync.
+ LOG  [RevenueCat] No new events to sync.
+ LOG  [RevenueCat] No legacy events to sync. Skipping legacy flush.
+ DEBUG  [RevenueCat] ℹ️ No cached Offerings, fetching from network
+ DEBUG  [RevenueCat] 😻 Start Offerings update from network.
+ DEBUG  [RevenueCat] Same call already in progress, adding to callbacks map with key: BackgroundAwareCallbackCacheKey(cacheKey=[/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/offerings], appInBackground=false)
+ DEBUG  [RevenueCat] Request already scheduled with jitter delay, adding existing callbacks to unjittered request with key: BackgroundAwareCallbackCacheKey(cacheKey=[/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/offerings], appInBackground=false)
+ DEBUG  [RevenueCat] API request started: GET /v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/offerings
+ DEBUG  [RevenueCat] API request completed with status: GET /v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/offerings 304
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryProductDetailsAsync for products: [monthly, yearly]
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryProductDetailsAsync for products: [monthly, yearly]
+ DEBUG  [RevenueCat] Same call already in progress, adding to callbacks map with key: /rcbilling/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/products?id=monthly&id=yearly
+ DEBUG  [RevenueCat] Getting storefront from cache was null.
+ DEBUG  [RevenueCat] API request started: GET /v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475
+ DEBUG  [RevenueCat] API request completed with status: GET /v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475 200
+ DEBUG  [RevenueCat] 😻 CustomerInfo updated from network.
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryPurchases - returning empty map
+ DEBUG  [RevenueCat] ℹ️ Cleaning previously sent tokens
+ DEBUG  [RevenueCat] ℹ️ Saving tokens []
+ DEBUG  [RevenueCat] ℹ️ Tokens already posted: []
+ DEBUG  [RevenueCat] ℹ️ No pending purchases to sync
+ DEBUG  [RevenueCat] Getting storefront from cache was null.
+ DEBUG  [RevenueCat] API request started: GET /rcbilling/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/products?id=monthly&id=yearly
+ DEBUG  [RevenueCat] API request completed with status: GET /rcbilling/v1/subscribers/ed382b9b-a72f-4d56-90ad-650e35026475/products?id=monthly&id=yearly 304
+ DEBUG  [RevenueCat] ℹ️ Building offerings response with 2 products
+ LOG  [RevenueCat] Offerings object created with 1 offerings
+ LOG  [RevenueCat] OfferingImagePreDownloader won't pre-download images
+ DEBUG  [RevenueCat] ℹ️ Building offerings response with 2 products
+ LOG  [RevenueCat] Offerings object created with 1 offerings
+ LOG  [RevenueCat] OfferingImagePreDownloader won't pre-download images
+ LOG  [revenuecat] mode=test_store offering=default monthly=monthly annual=yearly
+ LOG  [cloud] start-archive-attempt · 200 · 3358ms · error=new
+ LOG  [cloud] open-puzzle · 200 · 4413ms · slot=1 · engine=OBS_001
+ LOG  [cloud] submit-answer · 200 · 3403ms · slot=1 · engine=OBS_001 · error=correct
+ LOG  [cloud] open-puzzle · 200 · 2598ms · slot=2 · engine=PAT_001
+ LOG  [cloud] submit-answer · 200 · 1599ms · slot=2 · engine=PAT_001 · error=correct
+ LOG  [cloud] open-puzzle · 200 · 3491ms · slot=3 · engine=LOG_002
+ LOG  [cloud] submit-answer · 200 · 3443ms · slot=3 · engine=LOG_002 · error=correct
+ LOG  [cloud] open-puzzle · 200 · 1721ms · slot=4 · engine=LNG_001
+ LOG  [cloud] submit-answer · 200 · 1673ms · slot=4 · engine=LNG_001 · error=correct
+ LOG  [cloud] open-puzzle · 200 · 1966ms · slot=5 · engine=ATT_003
+ LOG  [cloud] submit-answer · 200 · 2148ms · slot=5 · engine=ATT_003 · error=incorrect
+ LOG  [cloud] complete-attempt · 200 · 3735ms
+Android Bundled 31ms index.ts (1 module)
+ WARN  @supabase/gotrue-js: Lock "lock:sb-kfcshiktovyjcoepnrfw-auth-token" acquisition timed out after 0ms. This may be caused by another operation holding the lock. Consider increasing lockAcquireTimeout or checking for stuck operations.
+Android Bundled 17ms node_modules\@react-native-async-storage\async-storage\src\index.ts (1 module)
+ LOG  [cloud] get-today-player-status · 200 · 1807ms · error=anonymous_account
+ LOG  [cloud] get-daily-pack · 200 · 2978ms
+Android Bundled 23ms node_modules\react-native-purchases\dist\index.js (1 module)
+ LOG  [revenuecat] configured mode=test_store appUserIdPrefix=0c6df6e4…
+ WARN  [RevenueCat] Using a Test Store API key.
+The Test Store is for development only. Never use a Test Store API key in production. Our SDK will crash if using it in production. Test Store purchases are simulated, do not use Google Play or Amazon store, and generate no revenue. Apps submitted with a Test Store API key will be rejected during App Review.
+ DEBUG  [RevenueCat] ℹ️ Debug logging enabled
+ DEBUG  [RevenueCat] ℹ️ SDK Version - 10.12.0
+ DEBUG  [RevenueCat] ℹ️ Package name - com.brainbrew.app
+ DEBUG  [RevenueCat] 👤 Initial App User ID - 0c6df6e4-3112-4f46-992c-814c0f77de8d
+ DEBUG  [RevenueCat] ℹ️ Purchases configured with response verification: DISABLED
+ DEBUG  [RevenueCat] 👤 Identifying App User ID: 0c6df6e4-3112-4f46-992c-814c0f77de8d
+ DEBUG  [RevenueCat] ℹ️ Deleting old synced subscriber attributes that don't belong to 0c6df6e4-3112-4f46-992c-814c0f77de8d
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: Starting connection
+ DEBUG  [RevenueCat] ℹ️ Listener set
+ DEBUG  [RevenueCat] ℹ️ Updating pending purchase queue
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: getStorefront - returning US by default
+ DEBUG  [RevenueCat] Billing connected with country code: US
+ DEBUG  [RevenueCat] ℹ️ App foregrounded
+ DEBUG  [RevenueCat] ℹ️ CustomerInfo cache is stale, updating from network in foreground.
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryPurchases - returning empty map
+ DEBUG  [RevenueCat] ℹ️ Cleaning previously sent tokens
+ DEBUG  [RevenueCat] ℹ️ Saving tokens []
+ DEBUG  [RevenueCat] ℹ️ Tokens already posted: []
+ DEBUG  [RevenueCat] ℹ️ No pending purchases to sync
+ DEBUG  [RevenueCat] Retrieving customer info with policy: FETCH_CURRENT
+ DEBUG  [RevenueCat] ℹ️ Updating pending purchase queue
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryPurchases - returning empty map
+ DEBUG  [RevenueCat] ℹ️ Offerings cache is stale, updating from network in foreground
+ DEBUG  [RevenueCat] ℹ️ Cleaning previously sent tokens
+ DEBUG  [RevenueCat] 😻 Start Offerings update from network.
+ DEBUG  [RevenueCat] ℹ️ Saving tokens []
+ DEBUG  [RevenueCat] ℹ️ Tokens already posted: []
+ DEBUG  [RevenueCat] Request already scheduled with jitter delay, adding existing callbacks to unjittered request with key: BackgroundAwareCallbackCacheKey(cacheKey=[/v1/subscribers/0c6df6e4-3112-4f46-992c-814c0f77de8d/offerings], appInBackground=false)
+ DEBUG  [RevenueCat] ℹ️ No pending purchases to sync
+ DEBUG  [RevenueCat] ℹ️ Updating pending purchase queue
+ DEBUG  [RevenueCat] Request already scheduled with jitter delay, adding existing callbacks to unjittered request with key: BackgroundAwareCallbackCacheKey(cacheKey=[/v1/subscribers/0c6df6e4-3112-4f46-992c-814c0f77de8d], appInBackground=false)
+ DEBUG  [RevenueCat] Getting storefront from cache was null.
+ DEBUG  [RevenueCat] ℹ️ No subscriber attributes to synchronize.
+ LOG  [RevenueCat] No new events to sync.
+ LOG  [RevenueCat] No new events to sync.
+ LOG  [RevenueCat] No legacy events to sync. Skipping legacy flush.
+ DEBUG  [RevenueCat] ℹ️ No cached Offerings, fetching from network
+ DEBUG  [RevenueCat] 😻 Start Offerings update from network.
+ DEBUG  [RevenueCat] Same call already in progress, adding to callbacks map with key: BackgroundAwareCallbackCacheKey(cacheKey=[/v1/subscribers/0c6df6e4-3112-4f46-992c-814c0f77de8d/offerings], appInBackground=false)
+ DEBUG  [RevenueCat] Request already scheduled with jitter delay, adding existing callbacks to unjittered request with key: BackgroundAwareCallbackCacheKey(cacheKey=[/v1/subscribers/0c6df6e4-3112-4f46-992c-814c0f77de8d/offerings], appInBackground=false)
+ DEBUG  [RevenueCat] API request started: GET /v1/subscribers/0c6df6e4-3112-4f46-992c-814c0f77de8d/offerings
+ DEBUG  [RevenueCat] API request completed with status: GET /v1/subscribers/0c6df6e4-3112-4f46-992c-814c0f77de8d/offerings 200
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryProductDetailsAsync for products: [monthly, yearly]
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryProductDetailsAsync for products: [monthly, yearly]
+ DEBUG  [RevenueCat] Same call already in progress, adding to callbacks map with key: /rcbilling/v1/subscribers/0c6df6e4-3112-4f46-992c-814c0f77de8d/products?id=monthly&id=yearly
+ DEBUG  [RevenueCat] Getting storefront from cache was null.
+ DEBUG  [RevenueCat] API request started: GET /v1/subscribers/0c6df6e4-3112-4f46-992c-814c0f77de8d
+ DEBUG  [RevenueCat] API request completed with status: GET /v1/subscribers/0c6df6e4-3112-4f46-992c-814c0f77de8d 201
+ DEBUG  [RevenueCat] 😻 CustomerInfo updated from network.
+ DEBUG  [RevenueCat] ℹ️ Sending latest CustomerInfo to listener.
+ DEBUG  [RevenueCat] SimulatedStoreBillingAbstract: queryPurchases - returning empty map
+ DEBUG  [RevenueCat] ℹ️ Cleaning previously sent tokens
+ DEBUG  [RevenueCat] ℹ️ Saving tokens []
+ DEBUG  [RevenueCat] ℹ️ Tokens already posted: []
+ DEBUG  [RevenueCat] ℹ️ No pending purchases to sync
+ DEBUG  [RevenueCat] Getting storefront from cache was null.
+ DEBUG  [RevenueCat] API request started: GET /rcbilling/v1/subscribers/0c6df6e4-3112-4f46-992c-814c0f77de8d/products?id=monthly&id=yearly
+ DEBUG  [RevenueCat] API request completed with status: GET /rcbilling/v1/subscribers/0c6df6e4-3112-4f46-992c-814c0f77de8d/products?id=monthly&id=yearly 200
+ DEBUG  [RevenueCat] ℹ️ Building offerings response with 2 products
+ LOG  [RevenueCat] Offerings object created with 1 offerings
+ LOG  [RevenueCat] OfferingImagePreDownloader won't pre-download images
+ DEBUG  [RevenueCat] ℹ️ Building offerings response with 2 products
+ LOG  [RevenueCat] Offerings object created with 1 offerings
+ LOG  [RevenueCat] OfferingImagePreDownloader won't pre-download images
+ LOG  [revenuecat] mode=test_store offering=default monthly=monthly annual=yearly
+ LOG  [revenuecat] configured mode=test_store appUserIdPrefix=0c6df6e4…
+ INFO  [RevenueCat] Purchases instance already set with the same configuration. Ignoring duplicate call.
+ DEBUG  [RevenueCat] ℹ️ Listener set
+ DEBUG  [RevenueCat] ℹ️ Vending Offerings from cache
+ DEBUG  [RevenueCat] ℹ️ Checking if cache is stale AppInBackground false
+ LOG  [revenuecat] mode=test_store offering=default monthly=monthly annual=yearly
+ LOG  [cloud] get-today-player-status · 200 · 1260ms · error=anonymous_account
+ LOG  [cloud] get-daily-pack · 200 · 1944ms
+ LOG  [revenuecat] configured mode=test_store appUserIdPrefix=0c6df6e4…
+ INFO  [RevenueCat] Purchases instance already set with the same configuration. Ignoring duplicate call.
+ DEBUG  [RevenueCat] ℹ️ Listener set
+ DEBUG  [RevenueCat] ℹ️ Vending Offerings from cache
+ DEBUG  [RevenueCat] ℹ️ Checking if cache is stale AppInBackground false
+ LOG  [revenuecat] mode=test_store offering=default monthly=monthly annual=yearly

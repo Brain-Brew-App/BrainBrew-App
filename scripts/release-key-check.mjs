@@ -73,7 +73,10 @@ export function assessRelease({ profile, androidKey, iosKey, hardcodedKeyFiles =
  */
 export function isPlaceholderKey(token) {
   const body = token.replace(/^(test|goog|appl)_/, '');
-  return /^[Xx]+$/.test(body) || /XXXX/.test(body) || /^[A-Z_]*$/.test(body);
+  if (/^[Xx]+$/.test(body) || /XXXX/.test(body) || /^[A-Z_]*$/.test(body)) return true;
+  // A single character repeated (aaaa…, 0000…) is a test fixture, not a key.
+  // Real keys are mixed-case, high-entropy strings.
+  return /^(.)\1+$/.test(body);
 }
 
 /** Tracked files containing a literal RevenueCat SDK key (value never printed). */

@@ -21,7 +21,7 @@ import type { ValidEntitlements } from '../validate';
 import { analytics } from '../analytics';
 import { getRevenueCatService } from './index';
 import { purchasesCapability } from './platform';
-import { initialContext, premiumUnlocked, reduce, type PremiumContext, type PremiumEvent, type PremiumState } from './premiumMachine';
+import { canStartPurchase, initialContext, premiumUnlocked, reduce, type PremiumContext, type PremiumEvent, type PremiumState } from './premiumMachine';
 import { backoffFor, decideSync, makeDiagnosticRef, MAX_SYNC_ATTEMPTS } from './serverSync';
 import type { OfferingContract, OfferingUnavailable } from './types';
 
@@ -166,6 +166,9 @@ export function usePremiumController(enabled: boolean, authUserId: string | null
     const want = plan ?? selected;
     const pkg = ctx.offering?.packages.find((p) => p.plan === want);
     if (!svc || !pkg || busy.current) return;                    // single-flight
+    // Never run a real (chargeable) SDK purchase the machine would ignore — that
+    // would charge the user while the UI showed no progress at all.
+    if (!canStartPurchase(ctx)) return;
     if (plan) setSelected(plan);
     busy.current = true;
     const who = owner.current;
@@ -185,7 +188,7 @@ export function usePremiumController(enabled: boolean, authUserId: string | null
         busy.current = false;
       }
     })();
-  }, [ctx.offering, selected, awaitServerPremium]);
+  }, [ctx, selected, awaitServerPremium]);
 
   const restore = useCallback(() => {
     const svc = getRevenueCatService();

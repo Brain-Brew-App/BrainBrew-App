@@ -101,6 +101,42 @@ const future = new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 10);
   ok('archive start rejects a client score', (() => { try { A.validateArchiveStart({ attempt_id: 'a', final_score: 80 }); return false; } catch { return true; } })());
 }
 
+
+// ── Purchase must be startable from every state the user can be LOOKING at ────
+// Regression (found on-device): PURCHASE_START was accepted only from ready_*, so a
+// tap from `nothing_to_restore` ran the real SDK purchase — charging the user —
+// while the machine ignored the event and the UI never entered `finalizing`.
+{
+  const withState = (state, isPremium = false) => ({
+    state, isPremium, offering: { offeringId: 'default', packages: [] }, offeringError: null, diagnosticRef: null,
+  });
+  const startsFrom = (state) => M.reduce(withState(state), { type: 'PURCHASE_START' }).state === 'purchasing';
+
+  for (const s of ['ready_free', 'ready_premium', 'cancelled', 'nothing_to_restore', 'conflict', 'error', 'network_error']) {
+    ok(`purchase can start from ${s}`, startsFrom(s) === true);
+    ok(`canStartPurchase(${s}) agrees with the reducer`, M.canStartPurchase(withState(s)) === true);
+  }
+  // Blocked: nothing to buy yet, no store, already paid, or already in flight.
+  // (Reducing a blocked event returns the SAME context object — assert identity, not
+  // the state name: from `purchasing`, "unchanged" is still `purchasing`.)
+  const ignores = (state) => { const c = withState(state); return M.reduce(c, { type: 'PURCHASE_START' }) === c; };
+  for (const s of ['idle', 'loading_entitlement', 'loading_offering', 'unsupported_platform', 'store_unavailable', 'purchasing', 'finalizing', 'restoring']) {
+    ok(`purchase BLOCKED from ${s}`, ignores(s) === true);
+    ok(`canStartPurchase(${s}) agrees with the reducer`, M.canStartPurchase(withState(s)) === false);
+  }
+  // The critical one: never re-charge someone whose purchase is already being finalized.
+  ok('purchase BLOCKED from sync_delayed (already paid — never double-charge)', ignores('sync_delayed') === true);
+  ok('canStartPurchase(sync_delayed) === false', M.canStartPurchase(withState('sync_delayed')) === false);
+
+  // And the full path still works from a transient state.
+  let c = withState('nothing_to_restore');
+  c = M.reduce(c, { type: 'PURCHASE_START' });
+  c = M.reduce(c, { type: 'PURCHASE_RESULT', outcome: { status: 'purchased' } });
+  ok('nothing_to_restore → purchase → finalizing (not premium yet)', c.state === 'finalizing' && c.isPremium === false);
+  c = M.reduce(c, { type: 'SYNC_CONFIRMED' });
+  ok('…→ server confirm → ready_premium', c.state === 'ready_premium' && c.isPremium === true);
+}
+
 rmSync(out, { recursive: true, force: true });
 if (failures.length) {
   console.error(`\n${failures.length} PREMIUM/ARCHIVE-CLIENT CHECK(S) FAILED:`);
