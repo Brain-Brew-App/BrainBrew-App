@@ -121,6 +121,87 @@ await expectFail('MUTATION: client cannot flip the release policy', () => q(`upd
 ok('MUTATION: free entitlement read still archives=false (no client grant path)', one(await q(`select get_my_entitlements() r`)).r.capabilities.archives === false);
 await db.exec('reset role;');
 
+// =============================================================================
+// Expiry clamp — Premium must never outlive the period that was paid for.
+// Regression: get_my_entitlements/player_can_archive read entitlement_state
+// verbatim, so a lapsed subscription kept Premium (and Archives) until a webhook or
+// reconcile happened to correct the row.
+// =============================================================================
+const EXP = '33333333-3333-3333-3333-333333333333';
+await db.query(`insert into auth.users (id, is_anonymous) values ($1,false)`, [EXP]);
+const readAs = async (uid) => { await actAs(db, uid, { isAnonymous: false }); const r = one(await q(`select get_my_entitlements() r`)).r; await db.exec('reset role;'); return r; };
+const setEnt = async (fields) => {
+  await db.query(`delete from player_entitlements where user_id=$1`, [EXP]);
+  await db.query(
+    `insert into player_entitlements (user_id, entitlement_state, is_active, current_period_end, grace_period_end)
+     values ($1,$2,$3,$4,$5)`,
+    [EXP, fields.state, fields.active ?? true, fields.periodEnd ?? null, fields.graceEnd ?? null],
+  );
+};
+const canArchive = async () => one(await q(`select player_can_archive($1) c`, [EXP])).c;
+const PAST = new Date(Date.now() - 60_000).toISOString();
+const FUTURE = new Date(Date.now() + 3_600_000).toISOString();
+
+// LAPSED premium → expired, archives revoked, "active" no longer claimed.
+await setEnt({ state: 'premium', periodEnd: PAST });
+{
+  const e = await readAs(EXP);
+  ok('lapsed premium reads as expired', e.entitlement_state === 'expired');
+  ok('lapsed premium loses the archives capability', e.capabilities.archives === false);
+  ok('lapsed premium is not reported active', e.subscription.is_active === false);
+  ok('lapsed premium: player_can_archive() = false (the real server gate)', (await canArchive()) === false);
+  ok('lapsed premium: ranked limit is STILL a hard 1', e.limits.ranked_attempts_per_utc_day === 1);
+}
+
+// LIVE premium → untouched.
+await setEnt({ state: 'premium', periodEnd: FUTURE });
+{
+  const e = await readAs(EXP);
+  ok('live premium stays premium', e.entitlement_state === 'premium');
+  ok('live premium keeps archives', e.capabilities.archives === true);
+  ok('live premium: player_can_archive() = true', (await canArchive()) === true);
+}
+
+// Premium with NO period end (e.g. seeded/legacy) → not expired by the clamp.
+await setEnt({ state: 'premium', periodEnd: null });
+ok('premium without a period end is not expired by the clamp', (await readAs(EXP)).entitlement_state === 'premium');
+
+// GRACE PERIOD: period ended but grace still running → keeps Premium (that is the
+// entire point of a grace period). Once grace ends → expired.
+await setEnt({ state: 'grace_period', periodEnd: PAST, graceEnd: FUTURE });
+{
+  const e = await readAs(EXP);
+  ok('grace period (still running) keeps premium', e.entitlement_state === 'grace_period');
+  ok('grace period keeps archives', e.capabilities.archives === true);
+}
+await setEnt({ state: 'grace_period', periodEnd: PAST, graceEnd: PAST });
+{
+  const e = await readAs(EXP);
+  ok('grace period (ended) reads as expired', e.entitlement_state === 'expired');
+  ok('grace period (ended) loses archives', e.capabilities.archives === false);
+}
+
+// BILLING ISSUE: still inside the paid period → keeps Premium; past it (and past any
+// grace) → expired.
+await setEnt({ state: 'billing_issue', periodEnd: FUTURE });
+ok('billing issue inside the paid period keeps premium', (await readAs(EXP)).capabilities.archives === true);
+await setEnt({ state: 'billing_issue', periodEnd: PAST });
+ok('billing issue past the paid period reads as expired', (await readAs(EXP)).entitlement_state === 'expired');
+await setEnt({ state: 'billing_issue', periodEnd: PAST, graceEnd: FUTURE });
+ok('billing issue past period BUT in grace still keeps premium', (await readAs(EXP)).capabilities.archives === true);
+
+// The clamp is READ-only: the stored row is never rewritten (RevenueCat stays the
+// sole authority for what is persisted).
+await setEnt({ state: 'premium', periodEnd: PAST });
+await readAs(EXP);
+ok('clamp does NOT rewrite the stored row (provider remains the write authority)',
+  one(await q(`select entitlement_state s from player_entitlements where user_id=$1`, [EXP])).s === 'premium');
+
+// A revoked (refunded) subscription never gets archives, period end irrelevant.
+await setEnt({ state: 'revoked', periodEnd: FUTURE });
+ok('revoked (refund) never gets archives even inside the period', (await readAs(EXP)).capabilities.archives === false);
+await db.query(`delete from player_entitlements where user_id=$1`, [EXP]);
+
 if (failures.length) {
   console.error(`\n${failures.length} ARCHIVES CHECK(S) FAILED:`);
   for (const f of failures) console.error(`  ✕ ${f}`);

@@ -21,6 +21,28 @@ export function entitlementErrorCode(e: unknown): string {
 
 let cached: ValidEntitlements | null = null;
 
+/**
+ * Subscribers to cache changes.
+ *
+ * Without this, a purchase confirmed by the Premium controller updated THIS cache
+ * but not the React state of other entitlement readers, so the app kept using its
+ * pre-purchase snapshot: "Open Archives" led straight to the locked Archives screen
+ * until the app was restarted. Any surface that reads an entitlement must see a
+ * newly-confirmed one immediately.
+ */
+type EntitlementListener = (value: ValidEntitlements | null) => void;
+const listeners = new Set<EntitlementListener>();
+
+/** Subscribe to entitlement changes. Returns an unsubscribe function. */
+export function onEntitlementsChanged(fn: EntitlementListener): () => void {
+  listeners.add(fn);
+  return () => { listeners.delete(fn); };
+}
+
+function emit(): void {
+  for (const fn of [...listeners]) fn(cached);
+}
+
 export function cachedEntitlements(): ValidEntitlements | null {
   return cached;
 }
@@ -28,10 +50,12 @@ export function cachedEntitlements(): ValidEntitlements | null {
 /** Drop the cached entitlement (on any identity change). */
 export function invalidateMyEntitlements(): void {
   cached = null;
+  emit();                       // readers must drop a previous player's capabilities
 }
 
 export async function fetchEntitlements(): Promise<ValidEntitlements> {
   const value = validateEntitlements(await entitlementApi.get());
   cached = value;
+  emit();                       // a newly-confirmed Premium reaches every reader
   return value;
 }

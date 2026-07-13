@@ -14,7 +14,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { isCloudMode } from './env';
 import { LOCAL_DEV_ENTITLEMENTS } from './entitlements';
-import { cachedEntitlements } from './entitlementData';
+import { cachedEntitlements, onEntitlementsChanged } from './entitlementData';
 import { getEntitlements, refreshEntitlements } from './entitlementService';
 import type { ValidEntitlements } from './validate';
 
@@ -53,6 +53,16 @@ export function useEntitlements(enabled: boolean): EntitlementView {
     if (enabled) void load(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled]);
+
+  // A Premium purchase confirmed elsewhere (the Premium controller) refreshes the
+  // shared entitlement. Without this subscription this hook would keep serving its
+  // pre-purchase snapshot, and Archives would stay locked for a player who has just
+  // paid. An identity change emits null, dropping the previous player's capabilities.
+  useEffect(() => onEntitlementsChanged((value) => {
+    if (!isCloudMode()) return;
+    setEntitlements(value);
+    setPhase(value ? 'ready' : 'idle');
+  }), []);
 
   return { phase, entitlements, refresh: () => void load(true) };
 }
