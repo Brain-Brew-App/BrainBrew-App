@@ -80,14 +80,22 @@ switch (cmd) {
     adb('shell', 'input', 'tap', String(field[0]), String(field[1]));
     await sleep(600);
     adb('shell', 'input', 'text', name);
-    await sleep(2500);                       // server-side availability check
+    await sleep(2600);                       // server-side availability check
+    // NB: never use KEYCODE_BACK to dismiss the keyboard here. If the keyboard is
+    // already closed, BACK exits the app — which silently aborted onboarding.
+    // Tapping the country closes the keyboard on its own.
     const uae = findText('United Arab Emirates');
-    if (uae) { adb('shell', 'input', 'tap', String(uae[0]), String(uae[1])); await sleep(1200); }
-    adb('shell', 'input', 'keyevent', 'KEYCODE_BACK');   // hide keyboard
-    await sleep(800);
-    const cont = findText('Continue');
-    if (cont) adb('shell', 'input', 'tap', String(cont[0]), String(cont[1]));
-    console.log(`onboarded as ${name}`);
+    if (uae) { adb('shell', 'input', 'tap', String(uae[0]), String(uae[1])); await sleep(1500); }
+    for (let i = 0; i < 3; i++) {
+      const cont = findText('Continue');
+      if (cont) {
+        adb('shell', 'input', 'tap', String(cont[0]), String(cont[1]));
+        console.log(`onboarded as ${name}`);
+        break;
+      }
+      adb('shell', 'input', 'swipe', '540', '1800', '540', '1100', '300');  // reveal the CTA
+      await sleep(900);
+    }
     break;
   }
 

@@ -45,14 +45,20 @@ if ((existing ?? []).some((a) => a.status === 'completed')) {
   process.exit(0);
 }
 
+// A ranked attempt must carry its owner, ranked date and country snapshot
+// (constraint `ranked_requires_fields`) — the same fields the real flow writes.
+const { data: prof } = await db.from('profiles').select('country_code').eq('id', target.id).single();
+
 const now = new Date().toISOString();
 const { data: ins, error } = await db
   .from('attempts')
   .insert({
     user_id: target.id,
-    session_id: 'rc1a-elsewhere',
+    session_id: 'rc1a-elsewhere-device-b',   // >= 16 chars (constraint session_present)
     pack_id: pack.pack_id,
     is_ranked: true,
+    ranked_date: today,
+    country_code_snapshot: prof?.country_code ?? 'AE',
     status: 'completed',
     final_score: 61,
     active_denominator: 100,
