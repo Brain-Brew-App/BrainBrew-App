@@ -71,6 +71,36 @@ second.
 | Expiry | Subscription lapsed → **"Premium has expired. Your scores and history are safe."** → Archives re-locked |
 | Ranked fairness | **0** ranked attempts consumed; limit is a hard 1/day |
 
+## Webhook — certified (push path, independent of reconcile)
+
+Certified by **disabling the app's reconcile call entirely** and then purchasing, so
+the RevenueCat webhook was the *only* thing that could write. It is also
+self-evidencing: the webhook stamps `latest_event_id` on the entitlement row, and
+reconcile leaves it null.
+
+| Check | Evidence |
+|-------|----------|
+| Webhook authenticates (raw secret, no `Bearer`) | 3 live events, **3 processed, 0 error/quarantined** |
+| Purchase → `player_entitlements` **without reconcile** | `INITIAL_PURCHASE processed` → `state=premium, product=monthly, store=test_store`, `latest_event_id=FBEA7ABE…` (the webhook's stamp; reconcile writes null) |
+| App unlocks off the webhook's write alone | "You're Premium" + **Open Archives**, with reconcile compiled out |
+| **Duplicate delivery is a no-op** | replayed the real event id: `claim_webhook_event → false` (skips reprocessing) and `sync_player_entitlement → {"applied":false,"reason":"duplicate_event"}` |
+| **Out-of-order event cannot downgrade a payer** | stale event → `{"applied":false,"reason":"stale_event"}`; state stayed `premium` |
+| **Renewal** | Test Store auto-renews; two `RENEWAL` events processed, `current_period_end` extended 16:54:11 → 16:59:11 → 17:04:11, state stayed `premium` |
+
+**Webhook auth format (verified against the deployed function):** the `Authorization`
+header must be the **raw secret** — `Bearer <secret>` is rejected with 401. Secret name
+is exactly `REVENUECAT_WEBHOOK_AUTH` (min 16 chars, else `500 server_misconfigured`).
+
+### Expiry: handled, but the EXPIRATION *webhook* was not observed
+
+The Test Store subscription **auto-renews every 5 minutes** (`will_renew=true`), so no
+`EXPIRATION` or `CANCELLATION` event ever fired during the window. What *was* observed
+is the gap the clamp exists to cover: at `16:55:26Z` the stored row still said
+`premium` while its period had ended at `16:54:11Z` — and the read-time clamp already
+reported `effective=expired`. Expiry *behaviour* is certified (device-verified:
+"Premium has expired" + Archives re-locked). The `EXPIRATION` **event handler** is
+covered by DB tests but has not been exercised by a real delivery.
+
 ## Test Store limitations observed
 
 - **Restore is a no-op.** `Restoring purchases not available in test store. Returning
@@ -87,17 +117,17 @@ second.
 - **Account switch against a genuinely transferred purchase** — cache isolation is
   certified (a new identity sees no Premium and no Archives); an actual RevenueCat
   transfer is not.
-- **Cancellation and refund** — *expiry* is now certified; a user-initiated cancel and
-  a refund/revoke still need Play sandbox.
+- **`CANCELLATION` / `EXPIRATION` / refund webhooks** — never delivered: the Test Store
+  auto-renews indefinitely. Handlers are DB-tested; a real delivery is not certified.
 - **Google Play sandbox** — Play verification still pending.
 
 ## Pre-production action items
 
-1. Set `REVENUECAT_WEBHOOK_AUTH` and point the RevenueCat webhook at the deployed
-   `revenuecat-webhook`. Reconcile is a *pull* that runs on purchase/restore; the
-   webhook is the *push* that keeps a cancellation/refund/renewal current without the
-   player opening the app. **The read-time expiry clamp means a lapse is now handled
-   safely even without the webhook**, but a refund still needs the push to be prompt.
+1. **Cancel the live Test Store subscription in RevenueCat** (Customers → the test
+   subscriber → cancel / disable auto-renew). It is still auto-renewing every five
+   minutes and will do so indefinitely. Doing this also delivers the one lifecycle
+   event we have never seen for real — `CANCELLATION` then `EXPIRATION` — which closes
+   the last webhook gap. Ping me when it is cancelled and I will verify both land.
 2. **Review RevenueCat Restore Behavior** — currently *Transfer to new App User ID*,
    which can move a subscription between BrainBrew accounts. Decide explicitly before
    launch; "Keep with original App User ID" is **not** certified.
