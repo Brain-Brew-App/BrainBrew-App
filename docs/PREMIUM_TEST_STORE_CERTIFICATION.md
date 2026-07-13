@@ -71,29 +71,14 @@ second.
 | Expiry | Subscription lapsed → **"Premium has expired. Your scores and history are safe."** → Archives re-locked |
 | Ranked fairness | **0** ranked attempts consumed; limit is a hard 1/day |
 
-## Bugs found and fixed during this run
-
-1. **Purchase could charge with no UI.** `PURCHASE_START` was accepted only from
-   `ready_*`, so tapping a plan from `nothing_to_restore` (or `cancelled`, `conflict`,
-   a transient error) ran the real SDK purchase — **charging the user** — while the
-   machine ignored the event and the UI never entered `finalizing`. Fixed: purchase is
-   startable from every settled state the user can be looking at, and blocked from
-   `sync_delayed` (already paid — never double-charge). The controller now also
-   refuses to call the SDK when the machine would ignore it. Regression-tested.
-2. **App-wide Supabase RPC breakage** (previous commit): `rpc`/`functions.invoke`
-   were called unbound → `Cannot read property 'rest' of undefined` → reported as a
-   bogus "network_error".
-3. **Test Store needs `react-native-purchases` ≥ 9.5.4**; 8.5.0 silently fell back to
-   Play Billing.
-
 ## Test Store limitations observed
 
 - **Restore is a no-op.** `Restoring purchases not available in test store. Returning
   current CustomerInfo.` A restore therefore reports "no previous purchase" rather
   than re-granting. Restore-to-Premium can only be certified on Google Play.
-- **Test subscriptions expire quickly.** The purchase made at 02:17 was inactive by
-  18:48 the same day, which is why a second purchase was needed. Plan re-tests to run
-  within one sitting.
+- **Test subscriptions last FIVE MINUTES.** Confirmed from the reconciled row:
+  `purchased_at 15:48:51Z` → `current_period_end 15:53:51Z`. Plan any re-test to run
+  inside that window.
 
 ## Still uncertified (must not be claimed)
 
