@@ -116,7 +116,7 @@ external readiness. Complete these in order:
 5. Public **Android SDK key** → set as EAS env `EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY`.
 6. **Secret API key** → Supabase Edge secret `REVENUECAT_SECRET_API_KEY` (never client).
 7. **Webhook** → URL = deployed `revenuecat-webhook` function; auth secret →
-   Supabase Edge secret `REVENUECAT_WEBHOOK_SECRET`. Transfer behavior = **no-merge**.
+   Supabase Edge secret `REVENUECAT_WEBHOOK_AUTH`. Transfer behavior = **no-merge**.
 
 **Google Play Console**
 8. App + package `com.brainbrew.app`; Internal Testing track.

@@ -40,7 +40,7 @@ ck(existsSync(resolve(ROOT, 'supabase/functions/_shared/entitlementMap.ts')), 'c
 const envPresent = (name) => typeof process.env[name] === 'string' && process.env[name].length > 0;
 for (const [name, where] of [
   ['EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY', 'EAS build env (public Android SDK key)'],
-  ['REVENUECAT_WEBHOOK_SECRET', 'Supabase Edge secret (webhook auth)'],
+  ['REVENUECAT_WEBHOOK_AUTH', 'Supabase Edge secret (webhook auth)'],
   ['REVENUECAT_SECRET_API_KEY', 'Supabase Edge secret (provider re-fetch)'],
 ]) {
   if (!envPresent(name)) externalPending.push(`${name} — set in ${where}`);
