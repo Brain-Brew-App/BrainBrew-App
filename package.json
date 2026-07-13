@@ -111,7 +111,9 @@
     "eas-build-pre-install": "node scripts/release-key-check.mjs",
     "test:supabase-binding": "node scripts/supabase-binding-test.mjs",
     "lint": "eslint src App.tsx index.ts",
-    "lint:fix": "eslint src App.tsx index.ts --fix"
+    "lint:fix": "eslint src App.tsx index.ts --fix",
+    "rc1:state": "node scripts/db/with-secrets.mjs node scripts/db/rc1-state.mjs",
+    "rc1:promote": "node scripts/db/with-secrets.mjs node scripts/db/rc1-promote.mjs"
   },
   "private": true
 }

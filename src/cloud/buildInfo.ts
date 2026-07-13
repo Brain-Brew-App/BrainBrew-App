@@ -14,12 +14,27 @@
  * email, no token, no receipt.
  */
 
-import Constants from 'expo-constants';
-
 import { activeMode } from './env';
 import { currentStoreMode } from './revenuecat/platform';
 
 declare const __DEV__: boolean | undefined;
+
+/**
+ * expo-constants is a NATIVE module. A dev client built before it was added does not
+ * contain it, and a bare `import` would throw at module load — i.e. a diagnostics
+ * line would crash the app before the first render. Diagnostics must never be able
+ * to do that, so the module is loaded defensively and degrades to 'unknown'.
+ */
+function expoExtra(): { build?: { appVersion?: string; versionCode?: number; commit?: string }; } & { version?: string } {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const mod = require('expo-constants') as { default?: { expoConfig?: { version?: string; extra?: Record<string, unknown> } } };
+    const cfg = mod?.default?.expoConfig;
+    return { ...(cfg?.extra ?? {}), version: cfg?.version };
+  } catch {
+    return {};
+  }
+}
 
 export interface BuildInfo {
   appVersion: string;
@@ -31,11 +46,9 @@ export interface BuildInfo {
 }
 
 export function buildInfo(): BuildInfo {
-  const extra = (Constants.expoConfig?.extra ?? {}) as {
-    build?: { appVersion?: string; versionCode?: number; commit?: string };
-  };
+  const extra = expoExtra();
   return {
-    appVersion: extra.build?.appVersion ?? Constants.expoConfig?.version ?? 'unknown',
+    appVersion: extra.build?.appVersion ?? extra.version ?? 'unknown',
     versionCode: extra.build?.versionCode ?? 'unknown',
     commit: extra.build?.commit ?? 'unknown',
     environment: typeof __DEV__ !== 'undefined' && __DEV__ ? 'development' : 'production',
