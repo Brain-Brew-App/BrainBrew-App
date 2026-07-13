@@ -5,11 +5,27 @@ Device: Samsung S21+ (`RFCR10H7A3K`) · package `com.brainbrew.app` · dev clien
 bundle · live Supabase backend. Store separation + release gate:
 [REVENUECAT_STORE_MODES.md](REVENUECAT_STORE_MODES.md).
 
-## Status: **Test Store certification INCOMPLETE — one hop still blocked**
+## Status: **Test Store certification CLOSED** ✅
 
-Everything works except the RevenueCat→server reconcile, which is blocked by an API
-**key-version mismatch** (below). Everything downstream of it has been certified
-against the real server.
+The full chain is certified end-to-end on the real device, with no manual injection:
+
+```
+Test Store purchase → SDK success (does NOT unlock) → Finalizing access…
+  → revenuecat-reconcile → authoritative RevenueCat subscriber state
+  → player_entitlements → get_my_entitlements → Premium → Archives unlock
+  → subscription lapses → "Premium has expired" → Archives re-locks
+```
+
+Ranked fairness held throughout: **0 ranked attempts consumed**, limit is a hard 1/day.
+
+The earlier blocker was a **V1 vs V2 key-version mismatch** — our server calls
+RevenueCat's v1 `/subscribers` endpoint, which a V2 key cannot authenticate
+(`provider_auth_failed`). Resolved by setting a V1 secret key. See
+[REVENUECAT_STORE_MODES.md](REVENUECAT_STORE_MODES.md) for why v1 is the deliberate
+choice.
+
+**Google Play sandbox remains uncertified** (Play verification pending) and must not
+be claimed.
 
 ## Certified on-device
 
@@ -38,37 +54,22 @@ against the real server.
 | 21 | Production stays `beta_open`; public billing disabled | ✅ |
 | 22 | No key in tracked source; secret scan clean | ✅ |
 
-> ⚠️ #13–#19 were certified with the entitlement written **server-side via
-> `sync_player_entitlement`** — the exact row `revenuecat-reconcile` writes — because
-> reconcile itself is blocked. The purchase was real; the *reconcile hop* is what
-> remains unproven. The injected row was removed afterwards; the server is back to
-> free.
+## Reconcile — certified
 
-## BLOCKED: reconcile rejects the V2 key
+With a **V1** secret key set, `revenuecat-reconcile` authenticates and writes
+authoritative RevenueCat state. The row it produced was unmistakably its own work
+(not an injection): `source=revenuecat`, `entitlement=brainbrew_premium`,
+`product=monthly`, `store=test_store`, `purchased_at` matching the purchase to the
+second.
 
-`revenuecat-reconcile` returns:
-
-```
-{"error":"provider_auth_failed"}
-```
-
-The Edge Function re-fetches authoritative state from RevenueCat's **v1** endpoint
-(`GET /v1/subscribers/{app_user_id}`,
-[`_shared/revenuecat.ts`](../supabase/functions/_shared/revenuecat.ts)). RevenueCat's
-**V2 API keys are version-scoped and do not authenticate v1 endpoints.** The secret
-that was set is a V2 key, so every reconcile call fails auth.
-
-**Founder action (blocking):** create a **V1 secret key** in RevenueCat
-(Project settings → API keys → *secret* key for the **v1** API) and set it as the
-same Edge secret. You set it yourself; it is never shared:
-
-```
-npx supabase secrets set REVENUECAT_SECRET_API_KEY=<v1 secret key> --project-ref kfcshiktovyjcoepnrfw
-```
-
-(Alternative, larger change: port the server to the v2 customer endpoints, which also
-needs a `REVENUECAT_PROJECT_ID`. Not recommended now — v1 `/subscribers` returns
-exactly the canonical subscriber state the mapper consumes.)
+| Step | Evidence |
+|------|----------|
+| Reconcile authenticates | `{"ok":true,"entitlement_state":"free","applied":true}` (probe user, no purchases) |
+| Purchase → server Premium | `POST /v1/receipts 200` → `state=premium is_active=true will_renew=true` |
+| UI unlock | "You're Premium" · "Premium active." · **Open Archives** |
+| Archives (no restart) | Calendar with the historical `2026-07-12` pack |
+| Expiry | Subscription lapsed → **"Premium has expired. Your scores and history are safe."** → Archives re-locked |
+| Ranked fairness | **0** ranked attempts consumed; limit is a hard 1/day |
 
 ## Bugs found and fixed during this run
 
@@ -96,19 +97,45 @@ exactly the canonical subscriber state the mapper consumes.)
 
 ## Still uncertified (must not be claimed)
 
-- `revenuecat-reconcile` → `player_entitlements` (blocked on the v1 key)
-- Restore returning server-confirmed Premium (Test Store cannot restore)
-- Account-switch against a genuinely transferred purchase
-- Cancellation / expiry / refund reflected from RevenueCat
-- Google Play sandbox (Play verification still pending)
+- **Restore returning server-confirmed Premium** — the Test Store *cannot* restore
+  (`Restoring purchases not available in test store`). Only certifiable on Google Play.
+- **Account switch against a genuinely transferred purchase** — cache isolation is
+  certified (a new identity sees no Premium and no Archives); an actual RevenueCat
+  transfer is not.
+- **Cancellation and refund** — *expiry* is now certified; a user-initiated cancel and
+  a refund/revoke still need Play sandbox.
+- **Google Play sandbox** — Play verification still pending.
 
 ## Pre-production action items
 
-1. Set a **V1** `REVENUECAT_SECRET_API_KEY` (blocking, above).
-2. Optionally set `REVENUECAT_WEBHOOK_AUTH` + point the RevenueCat webhook at the
-   deployed `revenuecat-webhook`, so entitlement changes are pushed, not only pulled.
-3. **Review RevenueCat Restore Behavior** — currently *Transfer to new App User ID*,
+1. Set `REVENUECAT_WEBHOOK_AUTH` and point the RevenueCat webhook at the deployed
+   `revenuecat-webhook`. Reconcile is a *pull* that runs on purchase/restore; the
+   webhook is the *push* that keeps a cancellation/refund/renewal current without the
+   player opening the app. **The read-time expiry clamp means a lapse is now handled
+   safely even without the webhook**, but a refund still needs the push to be prompt.
+2. **Review RevenueCat Restore Behavior** — currently *Transfer to new App User ID*,
    which can move a subscription between BrainBrew accounts. Decide explicitly before
    launch; "Keep with original App User ID" is **not** certified.
-4. After Play verification: create Play products, switch to the `goog_` key. The
+3. After Play verification: create Play products, switch to the `goog_` key. The
    release gate already fails any store build carrying a `test_` key.
+4. **Watch item (not a task):** RevenueCat states the v1 `/subscribers` endpoint is not
+   deprecated and has no removal plan. If they ever announce a sunset, migrating the
+   reconcile/webhook fetch boundary to v2 becomes a planned post-launch job.
+
+## Bugs found by this certification (all fixed)
+
+1. **Test Store needs `react-native-purchases` ≥ 9.5.4.** 8.5.0 silently fell back to
+   Play Billing and produced a misleading "products not registered in the dashboard"
+   error. Upgraded to 10.4.2.
+2. **App-wide Supabase RPC breakage.** `rpc`/`functions.invoke` were called unbound →
+   `Cannot read property 'rest' of undefined` → reported as a bogus "network_error".
+   Broke entitlements, player status, leaderboards, progress and analytics.
+3. **A purchase could charge with no UI.** `PURCHASE_START` was accepted only from
+   `ready_*`, so tapping a plan from `nothing_to_restore`/`cancelled`/`conflict` ran the
+   real SDK purchase — charging the user — while the UI never entered `finalizing`.
+4. **Premium outlived the paid period.** The entitlement read and the archive gate used
+   the stored state verbatim, so a lapsed subscription kept Premium until a webhook or
+   reconcile corrected it. Now clamped at read time (fail closed).
+5. **Archives read a stale entitlement.** A confirmed purchase did not reach the
+   app-level entitlement reader, so "Open Archives" led to the locked screen until an
+   app restart.
