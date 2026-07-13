@@ -10,7 +10,7 @@ import type { ValidEntitlements } from '../cloud/validate';
 import { colors, MIN_TAP_TARGET, radius, shadow, spacing, typography } from '../theme/theme';
 
 interface PremiumScreenProps {
-  /** The player's server entitlement (from App); usePremium refreshes it live. */
+  /** The player's server entitlement (from App); the controller refreshes it live. */
   entitlements: ValidEntitlements | null;
   onBack: () => void;
   /** Open Premium Archives — the first real Premium feature (7J). */
@@ -154,9 +154,14 @@ export function PremiumScreen({ entitlements, onBack, onOpenArchives, authUserId
           </AnimatedMount>
         )}
 
+        {/*
+          Live region: these are PURCHASE outcomes — "Purchase cancelled", "that
+          purchase belongs to a different account", "Finalizing access…". They were
+          announced to nobody. Money errors must never be silent.
+        */}
         {(p.busy || p.finalizing || p.message) && (
-          <View style={styles.statusRow}>
-            {(p.busy || p.finalizing) && <ActivityIndicator color={colors.mint} />}
+          <View style={styles.statusRow} accessibilityLiveRegion="assertive">
+            {(p.busy || p.finalizing) && <ActivityIndicator color={colors.mint} accessibilityLabel="Loading" />}
             {p.finalizing && <Text style={styles.finalizing}>Finalizing access…</Text>}
             {p.message && <Text style={styles.message}>{p.message}</Text>}
           </View>

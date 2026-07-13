@@ -11,7 +11,7 @@
 import type { PurchasesAdapter, RcErrorLike } from './adapter';
 import { PREMIUM_ENTITLEMENT_ID } from './platform';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 type PurchasesModule = any;
 
 let cached: PurchasesModule | null = null;

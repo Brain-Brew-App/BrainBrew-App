@@ -27,7 +27,8 @@ export async function buildAllRows() {
   const { load } = compilePureModules();
 
   const { ALL_PUZZLES, LIBRARY } = await load('content/library.js');
-  const { PACKS } = await load('data/packs.js');
+  const { packs: buildAllPacks } = await load('data/packs.js');
+  const PACKS = buildAllPacks();   // lazy since 7K — build explicitly for the content pipeline
   const { ENGINE_REGISTRY } = await load('content/engines.js');
   const { ENGINE_SPLIT, ALWAYS_PRIVATE_FIELDS } = await load('infrastructure/supabase/publicFields.js');
   const { validateLibrary } = await load('content/validators.js');

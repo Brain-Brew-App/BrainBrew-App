@@ -25,8 +25,21 @@ interface RevealCardProps {
 export function RevealCard({ result, explanation, children }: RevealCardProps) {
   const verdict = verdictOf(result);
 
+  // TalkBack announced NOTHING when this card appeared: a blind player answered a
+  // puzzle and got silence — no verdict, no score, no hint that a Continue button
+  // now existed. `accessible` merges the children into one focusable node, so the
+  // bare glyph (✓/◐/✕) is no longer read as a meaningless symbol either.
+  const announcement =
+    `${verdict.label}. ${result.points} of ${MAX_POINTS_PER_PUZZLE} points. ${explanation}`;
+
   return (
-    <AnimatedMount distance={16} style={styles.card}>
+    <AnimatedMount
+      distance={16}
+      style={styles.card}
+      accessible
+      accessibilityLiveRegion="assertive"
+      accessibilityLabel={announcement}
+    >
       <View style={styles.header}>
         <View style={styles.verdictRow}>
           <VerdictMark mark={verdict.mark} color={verdict.color} />

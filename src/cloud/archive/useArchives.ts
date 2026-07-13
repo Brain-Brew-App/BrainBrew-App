@@ -41,20 +41,30 @@ export interface ArchivesView {
 export function useArchives(enabled: boolean, authUserId: string | null): ArchivesView {
   const [phase, setPhase] = useState<ArchivesPhase>('idle');
   const [calendar, setCalendar] = useState<ArchiveCalendar | null>(null);
-  const serviceRef = useRef<ArchiveService>(makeService());
+  // useRef(makeService()) EVALUATES makeService() on every render and throws the
+  // result away — only the first is kept. Build it once, on first use.
+  const serviceRef = useRef<ArchiveService | null>(null);
+  if (!serviceRef.current) serviceRef.current = makeService();
   const inFlight = useRef(false);
   const owner = useRef<string | null>(null);
 
   const load = useCallback(async () => {
     if (!enabled || inFlight.current) return;
     inFlight.current = true;
+    // Identity guard: an in-flight calendar for player A must never be applied
+    // after a switch to player B — B would be shown A's (possibly unlocked)
+    // archive calendar. The server still re-checks entitlement on start, so this
+    // is a wrong-UI bug rather than a Premium bypass, but it is still wrong.
+    const who = owner.current;
     setPhase((p) => (calendar ? p : 'loading'));
     try {
-      const cal = await serviceRef.current.getCalendar();
+      const cal = await serviceRef.current!.getCalendar();
+      if (owner.current !== who) return;
       setCalendar(cal);
       setPhase('ready');
       analytics.track(cal.locked ? 'archive_locked_viewed' : 'archive_calendar_viewed', { properties: { outcome: cal.locked ? 'locked' : 'available' } });
     } catch {
+      if (owner.current !== who) return;
       setPhase('error');
     } finally {
       inFlight.current = false;
@@ -77,9 +87,9 @@ export function useArchives(enabled: boolean, authUserId: string | null): Archiv
     phase,
     locked: calendar?.locked ?? true,
     calendar,
-    service: serviceRef.current,
+    service: serviceRef.current!,
     refresh: () => { setCalendar(null); void load(); },
-    getPack: (date) => serviceRef.current.getPack(date),
-    start: (date, sessionId, appVersion) => serviceRef.current.startArchive(date, sessionId, appVersion),
+    getPack: (date) => serviceRef.current!.getPack(date),
+    start: (date, sessionId, appVersion) => serviceRef.current!.startArchive(date, sessionId, appVersion),
   };
 }

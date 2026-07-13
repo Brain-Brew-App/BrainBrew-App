@@ -18,6 +18,7 @@ import {
   initialSession,
   transition,
   InvalidTransition,
+  TOTAL_SLOTS,
   type SessionEvent,
   type SessionState,
 } from '../cloud/sessionMachine';
@@ -84,10 +85,23 @@ function reducer(state: SessionState, event: SessionEvent): SessionState {
   try {
     return transition(state, event);
   } catch (e) {
-    // An illegal transition means a duplicate/stale action (e.g. a double tap):
-    // ignore it and keep the current state rather than crash.
-    if (e instanceof InvalidTransition) return state;
-    throw e;
+    if (!(e instanceof InvalidTransition)) throw e;
+
+    // Swallowing is CORRECT for a duplicate/stale user action (a double tap on
+    // Submit/Continue/Start): keep the current state rather than crash.
+    //
+    // It is WRONG for a failure event. An illegal `*_FAILED` meant the error was
+    // dropped on the floor and the phase never moved — the app sat on a loading
+    // spinner with no message and no button, and only a force-quit escaped. If a
+    // failure cannot be delivered, surface it as an error the player can retry
+    // from, never as silence.
+    if (event.type.endsWith('_FAILED')) {
+      if (__DEV__) console.warn(`[session] illegal ${event.type} from '${state.phase}' — surfacing as error`);
+      const code = 'code' in event && typeof event.code === 'string' ? event.code : 'network_error';
+      return { ...state, phase: 'error', error: { code, retryable: true, retryTo: 'loading_pack' } };
+    }
+    if (__DEV__) console.warn(`[session] ignored illegal ${event.type} from '${state.phase}'`);
+    return state;
   }
 }
 
@@ -182,17 +196,38 @@ export function useGameplaySession(devOverrideIndex: number | null = null): Sess
       // the completed state on Home rather than entering gameplay.
       if (res.alreadyCompleted) {
         setRanked(false);
-        dispatch({ type: 'RESET' });
-        const s = await service.getTodayStatus();
-        setStatus(s);
-        if (s.available) dispatch({ type: 'PACK_LOADED' });
-        else dispatch({ type: 'PACK_FAILED', code: 'no_live_pack', retryable: true });
+        dispatch({ type: 'RESET' });                 // → 'idle'
+        // LOAD_PACK is REQUIRED here. PACK_LOADED/PACK_FAILED are only legal from
+        // 'loading_pack'; dispatching them straight from 'idle' threw
+        // InvalidTransition, which the reducer swallowed, leaving the app pinned on
+        // "Brewing today's puzzles…" with no button — only a force-quit escaped.
+        dispatch({ type: 'LOAD_PACK' });
+        try {
+          const s = await service.getTodayStatus();
+          setStatus(s);
+          if (s.available) dispatch({ type: 'PACK_LOADED' });
+          else dispatch({ type: 'PACK_FAILED', code: 'no_live_pack', retryable: true });
+        } catch (e) {
+          // Own catch: the outer one dispatches START_FAILED, which is illegal from
+          // 'loading_pack' and would hang the app the same way.
+          dispatch({ type: 'PACK_FAILED', code: codeOf(e), retryable: true });
+        }
         return;
       }
       setRanked(res.ranked);
       const completed = res.completedPositions ?? [];
       const resumePosition = res.resumePosition ?? 1;
-      if (completed.length > 0 && resumePosition > 1) {
+
+      if (completed.length >= TOTAL_SLOTS) {
+        // Every slot is already scored server-side, but complete-attempt never ran
+        // (app killed / network lost between the last submit and completion).
+        // There was NO path out of this state: RESUME rejects it and nothing else
+        // could reach `completing`, so a RANKED attempt here could never be
+        // finished — the player's one attempt for the day was spent and no score
+        // was ever locked in. Go straight to completion.
+        dispatch({ type: 'RESUME_COMPLETE', completed: completed.map(resumedSlot) });
+        await complete();
+      } else if (completed.length > 0 && resumePosition > 1) {
         // Securely resume: the server already scored `completed`; open the next slot.
         dispatch({ type: 'RESUME', position: resumePosition, completed: completed.map(resumedSlot) });
         await openAt(resumePosition);
@@ -203,7 +238,7 @@ export function useGameplaySession(devOverrideIndex: number | null = null): Sess
     } catch (e) {
       dispatch({ type: 'START_FAILED', code: codeOf(e), retryable: !(e instanceof CloudFlowError) || e.copy.retryable });
     }
-  }, [service, openAt]);
+  }, [service, openAt, complete]);
 
   const start = useCallback(() => {
     void guard(() => beginAttempt());

@@ -18,7 +18,11 @@ const { background } = require('./src/theme/palette.json');
 
 /** @type {import('expo/config').ExpoConfig} */
 module.exports = {
-  name: 'brainbrew-app',
+  // The USER-FACING app name: the Android launcher label and the Play listing title.
+  // It was 'brainbrew-app' — the slug — so the phone's home screen literally read
+  // "brainbrew-app". The slug/EAS project id stay as they are; only the display
+  // name changes.
+  name: 'BrainBrew',
   slug: 'brainbrew-app',
   version: '1.0.0',
   orientation: 'portrait',

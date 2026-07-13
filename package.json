@@ -25,6 +25,8 @@
     "@electric-sql/pglite": "^0.5.4",
     "@types/react": "~19.2.2",
     "esbuild": "^0.28.1",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "~57.0.0",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -106,7 +108,9 @@
     "test:store-mode": "node scripts/store-mode-test.mjs",
     "release:key-check": "node scripts/release-key-check.mjs",
     "eas-build-pre-install": "node scripts/release-key-check.mjs",
-    "test:supabase-binding": "node scripts/supabase-binding-test.mjs"
+    "test:supabase-binding": "node scripts/supabase-binding-test.mjs",
+    "lint": "eslint src App.tsx index.ts",
+    "lint:fix": "eslint src App.tsx index.ts --fix"
   },
   "private": true
 }

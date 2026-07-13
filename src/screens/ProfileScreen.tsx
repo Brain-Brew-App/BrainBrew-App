@@ -137,7 +137,12 @@ export function ProfileScreen({ profile, onBack, onChanged, onSecureProgress, on
                   <Button label={busy ? 'Saving…' : 'Save'} onPress={saveUsername} disabled={busy} />
                 </View>
               ) : (
-                <Pressable style={styles.valueRow} onPress={() => { setName(profile.username ?? ''); setEditing('username'); }}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Edit username, currently ${profile.username ?? 'not set'}`}
+                  style={styles.valueRow}
+                  onPress={() => { setName(profile.username ?? ''); setEditing('username'); }}
+                >
                   <Text style={styles.value}>{profile.username ?? 'Not set'}</Text>
                   <Text style={styles.edit}>Edit</Text>
                 </Pressable>
@@ -166,7 +171,12 @@ export function ProfileScreen({ profile, onBack, onChanged, onSecureProgress, on
                   </View>
                 </View>
               ) : (
-                <Pressable style={styles.valueRow} onPress={() => setEditing('country')}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Edit country, currently ${countryName}`}
+                  style={styles.valueRow}
+                  onPress={() => setEditing('country')}
+                >
                   <Text style={styles.value}>{countryName}</Text>
                   <Text style={styles.edit}>Edit</Text>
                 </Pressable>
@@ -179,7 +189,7 @@ export function ProfileScreen({ profile, onBack, onChanged, onSecureProgress, on
               <Text style={styles.value}>{isGuest ? 'Guest' : 'Permanent'}</Text>
             </View>
 
-            {err && <Text style={styles.errorText}>{err}</Text>}
+            {err && <Text style={styles.errorText} accessibilityLiveRegion="assertive">{err}</Text>}
           </View>
         </AnimatedMount>
 
@@ -214,7 +224,7 @@ export function ProfileScreen({ profile, onBack, onChanged, onSecureProgress, on
                 </Text>
               </>
             )}
-            {opening && <ActivityIndicator color={colors.mint} />}
+            {opening && <ActivityIndicator color={colors.mint} accessibilityLabel="Loading" />}
           </View>
         </AnimatedMount>
 

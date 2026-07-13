@@ -272,6 +272,22 @@ ok('local config never requires supabase vars',
   throws('RESUME with nothing left to play is rejected', () => t(startR, { type: 'RESUME', position: 5, completed: [result(1), result(2), result(3), result(4), result(5)] }));
   throws('RESUME with a bad position is rejected', () => t(startR, { type: 'RESUME', position: 0, completed: [] }));
   throws('RESUME outside starting_attempt is rejected', () => t(homeR, { type: 'RESUME', position: 2, completed: [result(1)] }));
+
+  // ── REGRESSION (7K): the burned-ranked-attempt bug ────────────────────────
+  // All five slots were scored server-side but complete-attempt never ran (app
+  // killed between the last submit and completion). RESUME rejects that state, and
+  // there was NO other route to `completing` — so a RANKED attempt in this
+  // condition could never be finished. The day's one attempt was spent and no
+  // score was ever locked in. RESUME_COMPLETE is the missing edge.
+  const allFive = [result(1), result(2), result(3), result(4), result(5)];
+  const rc = t(startR, { type: 'RESUME_COMPLETE', completed: allFive });
+  ok('RESUME_COMPLETE (5/5 answered, never completed) → completing', rc.phase === 'completing' && rc.results.length === 5);
+  const rcDone = t(rc, { type: 'COMPLETED', finalScore: 77 });
+  ok('…and the attempt can now actually be COMPLETED (attempt not burned)', rcDone.phase === 'completed' && rcDone.finalScore === 77);
+  throws('RESUME_COMPLETE with fewer than five results is rejected', () => t(startR, { type: 'RESUME_COMPLETE', completed: [result(1), result(2)] }));
+  throws('RESUME_COMPLETE outside starting_attempt is rejected', () => t(homeR, { type: 'RESUME_COMPLETE', completed: allFive }));
+  // The five-result invariant still gates completion.
+  throws('COMPLETED still requires five results', () => t({ ...rc, results: [result(1)] }, { type: 'COMPLETED', finalScore: 10 }));
 }
 
 // =============================================================================
@@ -812,6 +828,31 @@ ok('local config never requires supabase vars',
 
 import { rmSync } from 'node:fs';
 rmSync(out, { recursive: true, force: true });
+
+
+// =============================================================================
+// REGRESSION (7K): archive resume. The server returned no resume info, so an
+// interrupted Archive brew always re-opened slot 1 → 'already_submitted' → the
+// player was bounced Home. That archive date could then NEVER be completed.
+// =============================================================================
+{
+  const base = { attemptId: 'a', attemptToken: 't', expiresAt: 1, rankedDate: '2026-07-12', puzzleCount: 5 };
+  const fresh = validate.validateArchiveStartResult({ ...base, resumed: false, completedPositions: [], resumePosition: 1 });
+  ok('archive fresh start → resume at slot 1, nothing completed', fresh.resumePosition === 1 && fresh.completedPositions.length === 0);
+
+  const mid = validate.validateArchiveStartResult({ ...base, resumed: true, completedPositions: [1, 2], resumePosition: 3 });
+  ok('archive resume carries completedPositions + resumePosition', mid.resumed === true && mid.resumePosition === 3 && mid.completedPositions.join(',') === '1,2');
+
+  // All five answered: the server reports puzzleCount + 1 = 'nothing left to open'.
+  const done = validate.validateArchiveStartResult({ ...base, resumed: true, completedPositions: [1,2,3,4,5], resumePosition: 6 });
+  ok('archive 5/5 answered → resumePosition = puzzleCount + 1 (complete, do not re-open)', done.resumePosition === 6 && done.completedPositions.length === 5);
+
+  throws('archive resumePosition beyond puzzleCount + 1 is rejected', () => validate.validateArchiveStartResult({ ...base, resumed: true, completedPositions: [], resumePosition: 7 }));
+  throws('archive resumePosition below 1 is rejected', () => validate.validateArchiveStartResult({ ...base, resumed: true, completedPositions: [], resumePosition: 0 }));
+  // The archive contract must still refuse anything ranked or pre-scored.
+  throws('archive start claiming ranked is still rejected', () => validate.validateArchiveStartResult({ ...base, resumed: false, isRanked: true }));
+  throws('archive start carrying a score is still rejected', () => validate.validateArchiveStartResult({ ...base, resumed: false, finalScore: 50 }));
+}
 
 if (failures.length) {
   console.error(`\n${failures.length} CLOUD-CLIENT CHECK(S) FAILED:\n`);

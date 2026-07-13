@@ -11,7 +11,7 @@
  * a pack forever (Core Spec §2).
  */
 
-import type { Difficulty, Puzzle } from '../types/puzzle';
+import type { Difficulty, Puzzle , MatrixRule } from '../types/puzzle';
 import {
   analogy,
   balanceScales,
@@ -31,8 +31,7 @@ import {
   symbolSweep,
   type BalanceSeed,
 } from './authoring';
-import { GLYPH_FAMILIES, PAIR_GLYPHS, type GlyphFamily, type SequenceFamily } from './lexicon';
-import type { MatrixRule } from '../types/puzzle';
+import { PAIR_GLYPHS, type GlyphFamily, type SequenceFamily } from './lexicon';
 
 const cycle = <T>(values: readonly T[], i: number): T => values[i % values.length]!;
 const DIFFS: Difficulty[] = [2, 3, 4, 3, 2, 4, 3, 5, 2, 3];

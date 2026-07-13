@@ -856,6 +856,10 @@ export function validateHistoryPage(raw: unknown): ValidHistoryPage {
 export function validateArchiveStartResult(raw: unknown): {
   attemptId: string; attemptToken: string; expiresAt: number;
   rankedDate: string; resumed: boolean; puzzleCount: number;
+  /** Slots the server has already scored. Empty on a fresh attempt. */
+  completedPositions: number[];
+  /** First unanswered slot. `puzzleCount + 1` when every slot is answered. */
+  resumePosition: number;
 } {
   if (!raw || typeof raw !== 'object') throw new PayloadError('bad_shape', 'archive start is not an object');
   const r = raw as Record<string, unknown>;
@@ -868,8 +872,18 @@ export function validateArchiveStartResult(raw: unknown): {
   if ('finalScore' in r || 'final_score' in r) throw new PayloadError('bad_shape', 'archive start carries a score');
   const count = isNum(r.puzzleCount) ? r.puzzleCount : 0;
   if (count < 1 || count > 5) throw new PayloadError('bad_slot_count', 'archive pack has no playable slots');
+
+  // Resume info. `resumePosition` may legitimately be count + 1 — "every slot is
+  // answered, nothing left to open, this attempt must be completed".
+  const completed = Array.isArray(r.completedPositions)
+    ? r.completedPositions.filter((p): p is number => isNum(p) && p >= 1 && p <= count)
+    : [];
+  const resume = isNum(r.resumePosition) ? r.resumePosition : 1;
+  if (resume < 1 || resume > count + 1) throw new PayloadError('bad_resume_position', 'archive resume position out of range');
+
   return {
     attemptId: r.attemptId, attemptToken: r.attemptToken, expiresAt: r.expiresAt,
     rankedDate: isStr(r.rankedDate) ? r.rankedDate : '', resumed: r.resumed === true, puzzleCount: count,
+    completedPositions: completed, resumePosition: resume,
   };
 }

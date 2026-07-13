@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { PuzzleFrame } from '../components/PuzzleFrame';
 import { TaskBrief, TimerChip } from '../components/TaskBrief';
@@ -140,18 +140,25 @@ function BucketButton({
 }) {
   const { scale, onPressIn, onPressOut } = usePressScale(0.97);
 
+  // The Animated.View is what actually renders the press scale. Without it the
+  // animation ran on every tap and was never drawn, so these two buttons were the
+  // only ones in the app with no press feedback — during a TIMED sprint, where
+  // confirmation that a tap registered matters most.
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      disabled={disabled}
-      onPress={onPress}
-      onPressIn={onPressIn}
-      onPressOut={onPressOut}
-      style={({ pressed }) => [styles.bucket, pressed && styles.bucketPressed, disabled && styles.bucketDisabled]}
-    >
-      <Text style={styles.bucketLabel}>{label}</Text>
-    </Pressable>
+    <Animated.View style={[styles.bucketWrap, { transform: [{ scale }] }]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityState={{ disabled }}
+        disabled={disabled}
+        onPress={onPress}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        style={({ pressed }) => [styles.bucket, pressed && styles.bucketPressed, disabled && styles.bucketDisabled]}
+      >
+        <Text style={styles.bucketLabel}>{label}</Text>
+      </Pressable>
+    </Animated.View>
   );
 }
 
@@ -173,6 +180,9 @@ const styles = StyleSheet.create({
   done: { ...typography.body, color: colors.textMuted },
   ruleSmall: { ...typography.caption, color: colors.textMuted, textAlign: 'center' },
   buttons: { flexDirection: 'row', gap: spacing.sm },
+  // flex:1 lives on the WRAPPER now, so the row still splits 50/50 with the
+  // Animated.View in between. The Pressable stretches to fill it.
+  bucketWrap: { flex: 1 },
   bucket: {
     flex: 1,
     minHeight: BUTTON_HEIGHT,

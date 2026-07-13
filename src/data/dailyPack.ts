@@ -11,9 +11,14 @@
  */
 
 import type { DailyPack } from '../types/puzzle';
-import { PACKS } from './packs';
+import { packs, PACK_SIZE } from './packs';
 
-export const PACK_COUNT = PACKS.length;
+/**
+ * The pack count is a CONSTANT (buildPacks() produces exactly PACK_SIZE packs or
+ * throws), so reading it must not force the whole library to be built — that is the
+ * point of packs() being lazy.
+ */
+export const PACK_COUNT = PACK_SIZE;
 
 const MS_PER_DAY = 86_400_000;
 
@@ -32,12 +37,12 @@ export function selectPackIndexForDate(date: Date): number {
 
 /** Wraps out-of-range indices rather than throwing — used by the dev switcher. */
 export function getPackByIndex(index: number): DailyPack {
-  return PACKS[((index % PACK_COUNT) + PACK_COUNT) % PACK_COUNT]!;
+  return packs()[((index % PACK_COUNT) + PACK_COUNT) % PACK_COUNT]!;
 }
 
 /** Today's pack. This is the only function the real app should ever call. */
 export function getDailyPack(date: Date = new Date()): DailyPack {
-  return PACKS[selectPackIndexForDate(date)]!;
+  return packs()[selectPackIndexForDate(date)]!;
 }
 
 /**

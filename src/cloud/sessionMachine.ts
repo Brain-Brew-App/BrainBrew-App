@@ -83,6 +83,12 @@ export type SessionEvent =
   | { type: 'SUBMITTED'; result: SlotResult }
   | { type: 'SUBMIT_FAILED'; code: string; retryable?: boolean }
   | { type: 'CONTINUE' }
+  /**
+   * Resume an attempt whose five slots are ALL already answered server-side but
+   * which was never completed (the app died between the last submit and
+   * complete-attempt). Without this the attempt was unfinishable — see RESUME.
+   */
+  | { type: 'RESUME_COMPLETE'; completed: SlotResult[] }
   | { type: 'COMPLETED'; finalScore: number }
   | { type: 'COMPLETE_FAILED'; code: string; retryable?: boolean }
   | { type: 'RETRY' }
@@ -140,8 +146,22 @@ export function transition(state: SessionState, event: SessionEvent): SessionSta
       // authoritative per-slot results still come from complete-attempt.
       if (phase !== 'starting_attempt') throw new InvalidTransition(phase, event.type);
       if (event.position < 1 || event.position > TOTAL_SLOTS) throw new InvalidTransition(phase, 'RESUME(bad position)');
+      // All five already answered → there is nothing to open; the attempt must be
+      // COMPLETED, not resumed. The caller dispatches RESUME_COMPLETE instead.
       if (event.completed.length >= TOTAL_SLOTS) throw new InvalidTransition(phase, 'RESUME(nothing to resume)');
       return { ...state, phase: 'opening_puzzle', position: event.position, results: [...event.completed] };
+    }
+
+    case 'RESUME_COMPLETE': {
+      // The five slots are all scored server-side but complete-attempt never ran
+      // (app killed / network lost between the last submit and completion). Go
+      // straight to `completing` so the attempt can be finished. Previously this
+      // state was unreachable: RESUME rejected it and there was no other path, so
+      // a RANKED attempt in this condition could never be completed — the player's
+      // one attempt for the day was spent with no score ever locked in.
+      if (phase !== 'starting_attempt') throw new InvalidTransition(phase, event.type);
+      if (event.completed.length !== TOTAL_SLOTS) throw new InvalidTransition(phase, 'RESUME_COMPLETE(not five results)');
+      return { ...state, phase: 'completing', position: TOTAL_SLOTS, results: [...event.completed] };
     }
 
     case 'START_FAILED':

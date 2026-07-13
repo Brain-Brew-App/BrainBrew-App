@@ -22,7 +22,8 @@ const { out, load } = compilePureModules();
 
 const { ALL_PUZZLES, LIBRARY } = await load('content/library.js');
 const { validateLibrary } = await load('content/validators.js');
-const { PACKS } = await load('data/packs.js');
+const { packs } = await load('data/packs.js');
+const PACKS = packs();   // lazy since 7K — build explicitly for the audit
 
 const bold = (s) => `\x1b[1m${s}\x1b[0m`;
 const dim = (s) => `\x1b[2m${s}\x1b[0m`;

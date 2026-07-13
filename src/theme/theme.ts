@@ -33,7 +33,16 @@ export const colors = {
   // Warm cream foreground.
   text: '#F5EEE1',
   textMuted: '#98A2BF',
-  textFaint: '#6B7699',
+  /**
+   * WCAG AA fix (7K): was #6B7699, which failed 4.5:1 on EVERY surface it renders
+   * on — 4.22:1 on background, 3.80:1 on surface, and 3.38:1 on surfaceRaised, which
+   * is the input placeholder colour, i.e. text people must read while typing. It is
+   * only ever used at 10–13px, so the 3:1 large-text exception never applied.
+   * Same hue, lightened until it clears the worst surface it actually touches:
+   * surfaceRaised 4.52:1, surface 5.07:1, background 5.64:1. Still clearly
+   * subordinate to textMuted (6.70:1 on surface), so the hierarchy is unchanged.
+   */
+  textFaint: '#7E8BB5',
   /** Ink on mint surfaces — the background colour, inverted onto light. */
   textInverse: palette.background,
 

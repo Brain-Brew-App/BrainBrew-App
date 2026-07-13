@@ -39,7 +39,7 @@ import {
   sequenceCompletion,
   sequenceRepair,
   symbolSweep,
-} from './authoring';
+ MEMORY_GLYPHS } from './authoring';
 import { ENGINE_REGISTRY } from './engines';
 import { validatePuzzle } from './validators';
 import { ALWAYS_PRIVATE_FIELDS, ENGINE_SPLIT } from '../infrastructure/supabase/publicFields';
@@ -56,7 +56,6 @@ import {
   SENTENCE_SETS,
   SWEEP_GLYPHS,
 } from './lexicon';
-import { MEMORY_GLYPHS } from './authoring';
 
 /** A safe {value,label} option — never carries a correct answer. */
 type Opt = { value: string; label: string };
@@ -182,7 +181,7 @@ export function splitBuilt(puzzle: Puzzle): { public: Record<string, unknown>; a
 
   if (spec.reshape) {
     const { field, answerKey } = spec.reshape;
-    const elements = (puzzle as Record<string, any>)[field] as Array<Record<string, unknown>>;
+    const elements = (puzzle as Record<string, any>)[field] as Record<string, unknown>[];
     pub[field] = elements.map((el) => {
       const { [answerKey]: _omit, ...rest } = el;
       return rest;
@@ -202,7 +201,7 @@ export function assertNoAnswerLeak(publicPayload: Record<string, unknown>, puzzl
   }
   if (spec.reshape) {
     const { field, answerKey } = spec.reshape;
-    const arr = (publicPayload[field] as Array<Record<string, unknown>>) ?? [];
+    const arr = (publicPayload[field] as Record<string, unknown>[]) ?? [];
     if (arr.some((el) => answerKey in el)) leaks.push(`${field}[].${answerKey}`);
   }
   if (leaks.length) throw new Error(`${puzzle.id}: public payload leaks answer field(s): ${leaks.join(', ')}`);

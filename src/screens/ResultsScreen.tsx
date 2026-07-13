@@ -123,7 +123,16 @@ export function ResultsScreen({
 
             <View style={styles.scoreWrap}>
               {celebrate && <CelebrationRing />}
-              <View style={styles.scoreRow}>
+              {/*
+                The number counts up over ~900ms, so a screen reader focusing here
+                mid-animation read a meaningless intermediate value ("43"). Announce
+                the REAL final score instead; the visual count-up is unchanged.
+              */}
+              <View
+                style={styles.scoreRow}
+                accessible
+                accessibilityLabel={`Your BrewScore: ${score.total} out of ${MAX_BREW_SCORE}`}
+              >
                 <Text style={styles.score}>{displayed}</Text>
                 <Text style={styles.scoreMax}>/ {MAX_BREW_SCORE}</Text>
               </View>

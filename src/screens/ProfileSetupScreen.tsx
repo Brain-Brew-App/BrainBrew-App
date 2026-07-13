@@ -22,7 +22,7 @@ import {
   setUsername,
   type CountryOption,
 } from '../cloud/profileApi';
-import { colors, MIN_TAP_TARGET, radius, shadow, spacing, typography } from '../theme/theme';
+import { colors, MIN_TAP_TARGET, radius, spacing, typography } from '../theme/theme';
 
 interface ProfileSetupScreenProps {
   /** Called once username + country are saved and onboarding is complete. */
@@ -133,7 +133,7 @@ export function ProfileSetupScreen({ onDone }: ProfileSetupScreenProps) {
                 maxLength={20}
                 accessibilityLabel="Choose a username"
               />
-              <Text style={[styles.help, availabilityColor(availability)]}>{availabilityText(availability) ?? USERNAME_HELP}</Text>
+              <Text style={[styles.help, availabilityColor(availability)]} accessibilityLiveRegion="polite">{availabilityText(availability) ?? USERNAME_HELP}</Text>
             </View>
           </AnimatedMount>
 
@@ -168,12 +168,12 @@ export function ProfileSetupScreen({ onDone }: ProfileSetupScreenProps) {
           </AnimatedMount>
 
           {error && (
-            <Text style={styles.errorText}>{error}</Text>
+            <Text style={styles.errorText} accessibilityLiveRegion="assertive">{error}</Text>
           )}
 
           <View style={styles.footer}>
             <Button label={submitting ? 'Saving…' : 'Continue'} onPress={submit} disabled={!canSubmit} />
-            {submitting && <ActivityIndicator color={colors.mint} style={styles.spinner} />}
+            {submitting && <ActivityIndicator color={colors.mint} style={styles.spinner} accessibilityLabel="Loading" />}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -50,7 +50,10 @@ const { scorePuzzle, computeBrewScore, brewScoreCaption, correctIdOf, MAX_BREW_S
   await load('scoring/brewScore.js');
 const { PACK_COUNT, getDailyPack, getPackByIndex, resolveDailyPack, selectPackIndexForDate, utcDayNumber, utcDateIso } =
   await load('data/dailyPack.js');
-const { PACKS } = await load('data/packs.js');
+// packs() is lazy (7K): the library is no longer built at module load, so cloud
+// mode never pays for content it does not use. Build it explicitly here.
+const { packs } = await load('data/packs.js');
+const PACKS = packs();
 const { ALL_PUZZLES, LIBRARY } = await load('content/library.js');
 const { validateLibrary, validatePuzzle } = await load('content/validators.js');
 

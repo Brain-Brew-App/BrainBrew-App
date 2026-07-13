@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -46,6 +46,20 @@ export function SecureProgressScreen({ onComplete, onBack }: SecureProgressScree
   const [cooldownUntil, setCooldownUntil] = useState(0);
   const [checking, setChecking] = useState(false);
   const lastEmail = useRef('');
+
+  // `Date.now() < cooldownUntil` was being evaluated during render with nothing to
+  // re-render the screen when the 30s window elapsed — so "Resend link" stayed
+  // disabled until some UNRELATED state change happened to force a render. A user
+  // who never touched anything else could not resend at all. This re-renders once,
+  // exactly when the cooldown expires.
+  const [coolingDown, setCoolingDown] = useState(false);
+  useEffect(() => {
+    const remaining = cooldownUntil - Date.now();
+    if (remaining <= 0) { setCoolingDown(false); return; }
+    setCoolingDown(true);
+    const timer = setTimeout(() => setCoolingDown(false), remaining);
+    return () => clearTimeout(timer);
+  }, [cooldownUntil]);
 
   const map = (r: { status: UpgradeStatus; code?: string; emailMasked?: string }) => {
     if (r.emailMasked) setMasked(r.emailMasked);
@@ -105,7 +119,7 @@ export function SecureProgressScreen({ onComplete, onBack }: SecureProgressScree
                   keyboardType="email-address"
                   accessibilityLabel="Email address"
                 />
-                {error && <Text style={styles.errorText}>{error}</Text>}
+                {error && <Text style={styles.errorText} accessibilityLiveRegion="assertive">{error}</Text>}
                 <Text style={styles.privacy}>Your email stays private and is never shown on your public card.</Text>
               </View>
             </AnimatedMount>
@@ -121,7 +135,7 @@ export function SecureProgressScreen({ onComplete, onBack }: SecureProgressScree
                   to finish. Keep this screen open, then tap “I’ve confirmed”.
                 </Text>
                 <Text style={styles.privacy}>The link expires in about an hour.</Text>
-                {checking && <ActivityIndicator color={colors.mint} />}
+                {checking && <ActivityIndicator color={colors.mint} accessibilityLabel="Loading" />}
               </View>
             </AnimatedMount>
           )}
@@ -161,7 +175,7 @@ export function SecureProgressScreen({ onComplete, onBack }: SecureProgressScree
             {step === 'sent' && (
               <>
                 <Button label="I’ve confirmed — continue" onPress={checkConfirmed} disabled={checking} />
-                <Button label="Resend link" variant="secondary" onPress={resend} disabled={Date.now() < cooldownUntil} />
+                <Button label="Resend link" variant="secondary" onPress={resend} disabled={coolingDown} />
                 <Button label="Use a different email" variant="secondary" onPress={() => setStep('email')} />
               </>
             )}
@@ -189,7 +203,7 @@ export function SecureProgressScreen({ onComplete, onBack }: SecureProgressScree
 function Loading({ label }: { label: string }) {
   return (
     <View style={styles.loading}>
-      <ActivityIndicator color={colors.mint} />
+      <ActivityIndicator color={colors.mint} accessibilityLabel="Loading" />
       <Text style={styles.body}>{label}</Text>
     </View>
   );

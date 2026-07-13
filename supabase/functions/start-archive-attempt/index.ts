@@ -58,11 +58,33 @@ Deno.serve(async (req) => {
     const slotRes = await svc.from('daily_pack_slots').select('position').eq('pack_id', packId).eq('void_status', false);
     const positions = ((slotRes.data as { position: number }[] | null) ?? []).map((s) => s.position).sort((a, b) => a - b);
 
-    console.log('start_archive_attempt', JSON.stringify({ resumed: res.resumed, user: user.id.slice(0, 8) }));
+    // RESUME INFO. Without this the client always re-opened slot 1 on a resumed
+    // archive attempt, so any Archive brew interrupted after the first answer could
+    // never be finished: slot 1 came back `already_submitted` and the player was
+    // bounced Home, for that date, forever. A paid feature, permanently broken.
+    // Mirrors the ranked/practice contract (`_shared/gameplay.ts`).
+    let completedPositions: number[] = [];
+    if (res.resumed) {
+      const done = await svc
+        .from('attempt_items').select('position')
+        .eq('attempt_id', res.attempt_id).eq('status', 'submitted');
+      completedPositions = ((done.data as { position: number }[] | null) ?? [])
+        .map((r) => r.position).sort((a, b) => a - b);
+    }
+    // The first slot with no answer. If every slot is answered we return
+    // positions.length + 1 (past the end) so the client can tell "nothing left to
+    // open — this attempt must be COMPLETED" apart from "re-open the last slot".
+    const resumePosition = positions.find((p) => !completedPositions.includes(p))
+      ?? positions.length + 1;
+
+    console.log('start_archive_attempt', JSON.stringify({
+      resumed: res.resumed, completed: completedPositions.length, user: user.id.slice(0, 8),
+    }));
     return json({
       attemptId: res.attempt_id, attemptToken, expiresAt: exp,
       rankedDate: res.ranked_date, resumed: res.resumed,
       puzzleCount: positions.length, positions,
+      completedPositions, resumePosition,
     });
   } catch (err) {
     return errorResponse(err);

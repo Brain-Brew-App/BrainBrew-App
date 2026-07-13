@@ -53,7 +53,7 @@ export function ArchivePackDetailScreen({ date, authUserId, onBack, onStart, bus
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {phase === 'loading' && <View style={styles.center}><ActivityIndicator color={colors.mint} /></View>}
+        {phase === 'loading' && <View style={styles.center}><ActivityIndicator color={colors.mint} accessibilityLabel="Loading" /></View>}
         {phase === 'error' && (
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Couldn’t load this Brew</Text>

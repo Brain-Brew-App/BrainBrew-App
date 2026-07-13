@@ -37,9 +37,17 @@ const cloudTransport: AnalyticsTransport = {
 
 const noopTransport: AnalyticsTransport = { async send() { return { accepted: 0, rejected: 0 }; } };
 
+/**
+ * Dev builds were tagging every event `environment: 'production'`, so all local and
+ * QA play was indistinguishable from real player behaviour in the KPI tables. The
+ * environment is now derived, not asserted.
+ */
+const ENVIRONMENT: 'development' | 'production' =
+  typeof __DEV__ !== 'undefined' && __DEV__ ? 'development' : 'production';
+
 export const analytics: AnalyticsService = createAnalytics({
   transport: isCloudMode() ? cloudTransport : noopTransport,
-  context: () => ({ platform: platform(), appVersion: APP_VERSION, environment: 'production' }),
+  context: () => ({ platform: platform(), appVersion: APP_VERSION, environment: ENVIRONMENT }),
   now: () => Date.now(),
   batchSize: 10,
   maxQueue: 200,

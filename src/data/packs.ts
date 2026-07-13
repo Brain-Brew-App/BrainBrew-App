@@ -115,7 +115,7 @@ function buildPacks(): DailyPack[] {
 
 /** The unscheduled surplus per engine — the content reserve (Core Spec §4). */
 export function reserveCounts(): Record<string, number> {
-  const scheduled = new Set(PACKS.flatMap((p) => p.puzzles.map((x) => x.id)));
+  const scheduled = new Set(packs().flatMap((p) => p.puzzles.map((x) => x.id)));
   const counts: Record<string, number> = {};
   for (const [engine, pool] of Object.entries(LIBRARY)) {
     const reserve = (pool as Puzzle[]).filter((p) => !scheduled.has(p.id)).length;
@@ -128,5 +128,19 @@ export function reserveCounts(): Record<string, number> {
  * Fixed rhythm inside every pack: visual → analytical → logical → verbal → fast
  * (§1). Pack order is the rotation order; it must stay stable, or a given date
  * would start resolving to a different pack.
+ *
+ * LAZY ON PURPOSE (7K). This used to be `export const PACKS = buildPacks()`, which
+ * ran at MODULE LOAD — so importing anything from this file built the entire local
+ * puzzle library before first paint. Measured at 128–174 ms of blocking JS on
+ * desktop V8 (Hermes on a mid-range Android is materially slower), and it retained
+ * ~180 KB for the process lifetime.
+ *
+ * In CLOUD mode — which is what ships — the result was never read at all: packs come
+ * from the server. The import chain (App → dailyPack → packs → content/library) made
+ * every cold start pay for content it would never use. Building on first access means
+ * local mode is unchanged and cloud mode never pays it.
  */
-export const PACKS: DailyPack[] = buildPacks();
+let built: DailyPack[] | null = null;
+export function packs(): DailyPack[] {
+  return (built ??= buildPacks());
+}

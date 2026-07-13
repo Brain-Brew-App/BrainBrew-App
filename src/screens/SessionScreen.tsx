@@ -71,7 +71,7 @@ export function SessionScreen({
 
       {submitting && !outcome && (
         <View style={styles.scoring}>
-          <ActivityIndicator color={colors.mint} />
+          <ActivityIndicator color={colors.mint} accessibilityLabel="Loading" />
           <Text style={styles.scoringText}>Scoring…</Text>
         </View>
       )}

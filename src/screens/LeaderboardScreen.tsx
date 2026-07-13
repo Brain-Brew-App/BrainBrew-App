@@ -91,7 +91,7 @@ export function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
         }
         ListFooterComponent={
           current.loadingMore ? (
-            <View style={styles.footer}><ActivityIndicator color={colors.mint} /></View>
+            <View style={styles.footer}><ActivityIndicator color={colors.mint} accessibilityLabel="Loading" /></View>
           ) : current.rows.length > 0 && !current.hasMore ? (
             <Text style={styles.footerEnd}>That’s everyone ranked today.</Text>
           ) : null

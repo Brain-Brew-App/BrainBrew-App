@@ -1034,9 +1034,6 @@ export function ordering(seed: OrderingSeed): OrderingPuzzle {
 // =============================================================================
 // LNG_003 — Sentence Ordering
 // =============================================================================
-
-const CONNECTIVES = /^(and|so|but|because|which|where|while|until|before|after|though|although)\b/i;
-
 const opensSentence = (text: string) => /^[A-Z]/.test(text);
 const closesSentence = (text: string) => /\.$/.test(text);
 

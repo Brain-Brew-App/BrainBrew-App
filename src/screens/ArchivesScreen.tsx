@@ -40,7 +40,7 @@ export function ArchivesScreen({ entitlements, authUserId, onBack, onOpenPremium
         <Text style={styles.fair}>{RANKED_FAIRNESS_PROMISE}</Text>
 
         {arch.phase === 'loading' && (
-          <View style={styles.center}><ActivityIndicator color={colors.mint} /><Text style={styles.muted}>Loading Archives…</Text></View>
+          <View style={styles.center}><ActivityIndicator color={colors.mint} accessibilityLabel="Loading" /><Text style={styles.muted}>Loading Archives…</Text></View>
         )}
 
         {arch.phase === 'error' && (

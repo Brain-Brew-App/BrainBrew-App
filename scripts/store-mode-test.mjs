@@ -23,7 +23,7 @@ const ok = (n, c) => (c ? passed++ : failures.push(n));
 
 // ── 1. Store-mode detection ──────────────────────────────────────────────────
 {
-  ok('test_ → test_store', S.storeModeFor('test_' + 'EJVzvOQabcdefghijklmnop') === 'test_store');
+  ok('test_ → test_store', S.storeModeFor('test_' + 'FakeKeyForTestsOnly1234') === 'test_store');
   ok('goog_ → google_play', S.storeModeFor('goog_' + 'abcdefghijklmnopqrstuv') === 'google_play');
   ok('appl_ → app_store', S.storeModeFor('appl_' + 'abcdefghijklmnopqrstuv') === 'app_store');
   ok('null → unconfigured', S.storeModeFor(null) === 'unconfigured');
@@ -32,7 +32,7 @@ const ok = (n, c) => (c ? passed++ : failures.push(n));
   // FAIL SAFE: an unknown prefix is never optimistically treated as a live store.
   ok('unknown prefix → invalid (fail safe)', S.storeModeFor('sk_live_supersecret') === 'invalid');
   ok('a RevenueCat SECRET key is NOT a store mode', S.storeModeFor('sk_abcdefghijklmnop') === 'invalid');
-  ok('mode name leaks no key material', !JSON.stringify(S.storeModeFor('test_EJVzvOQabcdefg')).includes('EJVz'));
+  ok('mode name leaks no key material', !JSON.stringify(S.storeModeFor('test_FakeKeyForTests')).includes('FakeKey'));
   ok('isTransactableMode(invalid) === false', S.isTransactableMode('invalid') === false);
   ok('isTransactableMode(unconfigured) === false', S.isTransactableMode('unconfigured') === false);
   ok('isTestStoreKey(goog_) === false', S.isTestStoreKey('goog_abcdefghijklmnop') === false);

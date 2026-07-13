@@ -29,7 +29,7 @@ declare const __DEV__: boolean | undefined;
 
 const PREMIUMISH = ['premium', 'grace_period', 'billing_issue'];
 const isPremiumState = (e: ValidEntitlements | null) => !!e && PREMIUMISH.includes(e.entitlementState);
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const sleep = (ms: number) => new Promise<void>((resolve) => { setTimeout(resolve, ms); });
 
 /** Cold-open auth-lock contention clears in well under a second; 3 tries is ample. */
 const ENTITLEMENT_ATTEMPTS = 3;
@@ -60,7 +60,8 @@ export function usePremiumController(enabled: boolean, authUserId: string | null
   const [selected, setSelected] = useState<'monthly' | 'annual' | null>(null);
 
   const supported = purchasesCapability().supported && !!getRevenueCatService();
-  const owner = useRef<string | null>(null);   // identity guard: stale work is discarded
+  // `undefined` = never mounted yet (NOT an account switch). null = signed out.
+  const owner = useRef<string | null | undefined>(undefined);
   const busy = useRef(false);                  // single-flight purchase/restore
 
   /** Reconcile server-side, then poll get_my_entitlements with bounded backoff. */
@@ -148,15 +149,24 @@ export function usePremiumController(enabled: boolean, authUserId: string | null
   }, [supported]);
 
   // Identity change → hard reset (no cross-account Premium/offering bleed).
+  //
+  // The `undefined` sentinel matters. `owner` used to start as `null`, so on the
+  // FIRST mount `owner.current !== authUserId` was always true and every open of
+  // the Premium screen was treated as an account switch: it wiped the shared
+  // entitlement cache (which now emits to every reader), forced a fresh
+  // get_my_entitlements round trip, and left capabilities transiently null
+  // app-wide. If that reload then failed, a paying user could walk from Premium
+  // into a LOCKED Archives screen. A first mount is not a switch.
   useEffect(() => {
-    if (owner.current !== authUserId) {
-      owner.current = authUserId;
+    const first = owner.current === undefined;
+    if (!first && owner.current !== authUserId) {
       busy.current = false;
       resetEntitlementsForIdentityChange();
       setEntitlement(null);
       setSelected(null);
       dispatch({ type: 'ACCOUNT_SWITCH' });
     }
+    owner.current = authUserId;
     if (enabled) void load(authUserId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, authUserId]);
@@ -171,7 +181,7 @@ export function usePremiumController(enabled: boolean, authUserId: string | null
     if (!canStartPurchase(ctx)) return;
     if (plan) setSelected(plan);
     busy.current = true;
-    const who = owner.current;
+    const who = owner.current ?? null;
     dispatch({ type: 'PURCHASE_START' });
     analytics.track('purchase_started', { properties: { package_type: pkg.plan } });
     void (async () => {
@@ -194,7 +204,7 @@ export function usePremiumController(enabled: boolean, authUserId: string | null
     const svc = getRevenueCatService();
     if (!svc || busy.current) return;
     busy.current = true;
-    const who = owner.current;
+    const who = owner.current ?? null;
     dispatch({ type: 'RESTORE_START' });
     analytics.track('restore_started');
     void (async () => {
@@ -223,9 +233,9 @@ export function usePremiumController(enabled: boolean, authUserId: string | null
     choose: setSelected,
     purchase,
     restore,
-    retryOffering: () => { dispatch({ type: 'RETRY' }); void load(owner.current); },
+    retryOffering: () => { dispatch({ type: 'RETRY' }); void load(owner.current ?? null); },
     // Stays in `sync_delayed` while it re-reconciles; SYNC_CONFIRMED promotes it.
-    retrySync: () => { void awaitServerPremium(owner.current); },
+    retrySync: () => { void awaitServerPremium(owner.current ?? null); },
     dismiss: () => dispatch({ type: 'DISMISS_TRANSIENT' }),
   };
 }

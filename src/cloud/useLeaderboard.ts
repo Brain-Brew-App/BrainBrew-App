@@ -157,7 +157,7 @@ export function useDailyLeaderboard(enabled: boolean): DailyLeaderboardView {
   useEffect(() => {
     if (!enabled) return;
     void fetchMyRank().then(setMyRank).catch(() => undefined);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [enabled]);
 
   return { scope, setScope, current: data[scope], myRank, rankedDate, refresh, loadMore };

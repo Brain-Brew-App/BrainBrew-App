@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useState } from 'react';
 
 /**
  * Milliseconds since this component mounted. The session host remounts each
@@ -15,6 +15,9 @@ import { useCallback, useRef } from 'react';
  * thing to delete when scoring moves server-side.
  */
 export function useElapsed(): () => number {
-  const startedAt = useRef(Date.now());
-  return useCallback(() => Date.now() - startedAt.current, []);
+  // Lazy init. `useRef(Date.now())` calls Date.now() on EVERY render and discards
+  // all but the first — an impure call during render, and pointless work in the
+  // timed engines, which re-render constantly. useState's initialiser runs once.
+  const [startedAt] = useState(() => Date.now());
+  return useCallback(() => Date.now() - startedAt, [startedAt]);
 }

@@ -103,7 +103,7 @@ export function AccountEntryScreen({ onContinueAsGuest, onSignedIn }: AccountEnt
                   keyboardType="email-address"
                   accessibilityLabel="Email address"
                 />
-                {error && <Text style={styles.errorText}>{error}</Text>}
+                {error && <Text style={styles.errorText} accessibilityLiveRegion="assertive">{error}</Text>}
                 <Button label={busy ? 'Sending…' : 'Send sign-in link'} onPress={send} disabled={busy || email.length === 0} />
                 <Button label="Back" variant="secondary" onPress={() => setStep('choose')} />
               </View>
@@ -124,7 +124,7 @@ export function AccountEntryScreen({ onContinueAsGuest, onSignedIn }: AccountEnt
             </AnimatedMount>
           )}
 
-          {busy && step !== 'sent' && <ActivityIndicator color={colors.mint} />}
+          {busy && step !== 'sent' && <ActivityIndicator color={colors.mint} accessibilityLabel="Loading" />}
         </ScrollView>
       </KeyboardAvoidingView>
     </Screen>

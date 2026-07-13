@@ -43,14 +43,26 @@ export function StatusView({
     <Screen>
       <View style={styles.container}>
         <AnimatedMount distance={12}>
-          <View style={styles.card}>
-            <View style={styles.markRow}>
+          {/*
+            This is the app's ONE loading/error surface — every boot, pack load,
+            attempt start, scoring step and terminal error renders through it, and
+            all of them were silent to TalkBack. A live region announces the title
+            and body when it changes. `polite` (not `assertive`) so it does not
+            interrupt the player mid-sentence.
+          */}
+          <View
+            style={styles.card}
+            accessible
+            accessibilityLiveRegion="polite"
+            accessibilityLabel={body ? `${title}. ${body}` : title}
+          >
+            <View style={styles.markRow} importantForAccessibility="no-hide-descendants">
               {loading ? <PulsingMark /> : <BrewMark size={40} />}
             </View>
             <Text style={styles.title}>{title}</Text>
             {body ? <Text style={styles.body}>{body}</Text> : null}
             {loading ? (
-              <ActivityIndicator color={colors.mint} style={styles.spinner} />
+              <ActivityIndicator color={colors.mint} style={styles.spinner} accessibilityLabel="Loading" />
             ) : null}
             {onPrimary ? (
               <View style={styles.actions}>
