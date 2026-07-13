@@ -80,26 +80,54 @@ reconcile leaves it null.
 
 | Check | Evidence |
 |-------|----------|
-| Webhook authenticates (raw secret, no `Bearer`) | 3 live events, **3 processed, 0 error/quarantined** |
+| Webhook authenticates (raw secret, no `Bearer`) | **6 live events, 6 processed, 0 error/quarantined** |
 | Purchase → `player_entitlements` **without reconcile** | `INITIAL_PURCHASE processed` → `state=premium, product=monthly, store=test_store`, `latest_event_id=FBEA7ABE…` (the webhook's stamp; reconcile writes null) |
 | App unlocks off the webhook's write alone | "You're Premium" + **Open Archives**, with reconcile compiled out |
 | **Duplicate delivery is a no-op** | replayed the real event id: `claim_webhook_event → false` (skips reprocessing) and `sync_player_entitlement → {"applied":false,"reason":"duplicate_event"}` |
 | **Out-of-order event cannot downgrade a payer** | stale event → `{"applied":false,"reason":"stale_event"}`; state stayed `premium` |
-| **Renewal** | Test Store auto-renews; two `RENEWAL` events processed, `current_period_end` extended 16:54:11 → 16:59:11 → 17:04:11, state stayed `premium` |
+| **Renewal** | Test Store auto-renews; every `RENEWAL` processed, `current_period_end` extended each time, state stayed `premium` |
+| **Expiration** | `EXPIRATION processed` → `state=expired, is_active=false, will_renew=false, expiration_reason=expired`, `player_can_archive=false` — **Archives revoked by the webhook with no app involvement** |
+| Device reflects it | "Premium has expired. Your scores and history are safe." · Archives gone · plans offered again |
+| Ranked fairness | **0** ranked attempts across all users, throughout |
+
+**Full lifecycle observed (6 events, 6 processed, 0 errors):**
+
+```
+16:49:13Z  INITIAL_PURCHASE  processed
+16:55:28Z  RENEWAL           processed
+16:59:34Z  RENEWAL           processed
+17:07:22Z  RENEWAL           processed
+17:11:22Z  RENEWAL           processed
+17:15:25Z  EXPIRATION        processed   → expired, archives revoked
+```
+
+> **No `CANCELLATION` event is ever sent.** RevenueCat's Test Store terminates the
+> subscription with `EXPIRATION` alone. Do not wait for a `CANCELLATION` — it will not
+> arrive. (A real Play cancellation *does* send one; that path is DB-tested, not yet
+> exercised live.)
 
 **Webhook auth format (verified against the deployed function):** the `Authorization`
 header must be the **raw secret** — `Bearer <secret>` is rejected with 401. Secret name
 is exactly `REVENUECAT_WEBHOOK_AUTH` (min 16 chars, else `500 server_misconfigured`).
 
-### Expiry: handled, but the EXPIRATION *webhook* was not observed
+### Test Store subscription lifecycle — there is NO manual cancel
 
-The Test Store subscription **auto-renews every 5 minutes** (`will_renew=true`), so no
-`EXPIRATION` or `CANCELLATION` event ever fired during the window. What *was* observed
-is the gap the clamp exists to cover: at `16:55:26Z` the stored row still said
-`premium` while its period had ended at `16:54:11Z` — and the read-time clamp already
-reported `effective=expired`. Expiry *behaviour* is certified (device-verified:
-"Premium has expired" + Archives re-locked). The `EXPIRATION` **event handler** is
-covered by DB tests but has not been exercised by a real delivery.
+Worth writing down, because it is easy to go looking for a control that does not exist:
+**the Test Store has no Cancel / Disable-auto-renew action** — not in the dashboard,
+not via an API. Per RevenueCat's Test Store docs:
+
+> *"Each test subscription will renew automatically up to 5 times, after which it will
+> cancel and its associated entitlements will become inactive."*
+
+So the lifecycle is fixed and self-terminating: **INITIAL_PURCHASE → 5 × RENEWAL →
+cancellation/expiration**, with a 5-minute period for a monthly product (≈30 minutes
+end to end). To certify `EXPIRATION` you do not cancel anything — you wait out the
+five renewals. Buying again only restarts the clock.
+
+The read-time expiry clamp was observed doing exactly its job in the gap between a
+period ending and the next event arriving: at `16:55:26Z` the stored row still said
+`premium` while its period had ended at `16:54:11Z`, and the clamp already reported
+`effective=expired`.
 
 ## Test Store limitations observed
 
@@ -117,18 +145,14 @@ covered by DB tests but has not been exercised by a real delivery.
 - **Account switch against a genuinely transferred purchase** — cache isolation is
   certified (a new identity sees no Premium and no Archives); an actual RevenueCat
   transfer is not.
-- **`CANCELLATION` / `EXPIRATION` / refund webhooks** — never delivered: the Test Store
-  auto-renews indefinitely. Handlers are DB-tested; a real delivery is not certified.
+- **User-initiated cancellation and refunds** — the Test Store never sends a `CANCELLATION`
+  event (it terminates via `EXPIRATION`), and it cannot issue a refund. Both handlers are
+  DB-tested; only Google Play can exercise them live.
 - **Google Play sandbox** — Play verification still pending.
 
 ## Pre-production action items
 
-1. **Cancel the live Test Store subscription in RevenueCat** (Customers → the test
-   subscriber → cancel / disable auto-renew). It is still auto-renewing every five
-   minutes and will do so indefinitely. Doing this also delivers the one lifecycle
-   event we have never seen for real — `CANCELLATION` then `EXPIRATION` — which closes
-   the last webhook gap. Ping me when it is cancelled and I will verify both land.
-2. **Review RevenueCat Restore Behavior** — currently *Transfer to new App User ID*,
+1. **Review RevenueCat Restore Behavior** — currently *Transfer to new App User ID*,
    which can move a subscription between BrainBrew accounts. Decide explicitly before
    launch; "Keep with original App User ID" is **not** certified.
 3. After Play verification: create Play products, switch to the `goog_` key. The
