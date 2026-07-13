@@ -51,6 +51,5 @@ supabase/.branches/
 .env.vercel.local
 
 # Local Metro bundler log (dev only)
-metro.log
+metro*.log
 
-metro2.log
