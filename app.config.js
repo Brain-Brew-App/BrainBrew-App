@@ -16,6 +16,26 @@
 
 const { background } = require('./src/theme/palette.json');
 
+const APP_VERSION = '1.0.0';
+const VERSION_CODE = 3;   // RC1-A. Bump on EVERY build that leaves this machine.
+
+/**
+ * The commit the build was cut from — so a device can be tied to an exact tree
+ * during certification. EAS provides the hash as an env var (the build server has
+ * no .git); locally we read it from git. Never fails the build if neither exists.
+ */
+function commitSha() {
+  const fromEas = process.env.EAS_BUILD_GIT_COMMIT_HASH;
+  if (fromEas) return fromEas.slice(0, 7);
+  try {
+    return require('node:child_process')
+      .execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
+      .toString().trim();
+  } catch {
+    return 'unknown';
+  }
+}
+
 /** @type {import('expo/config').ExpoConfig} */
 module.exports = {
   // The USER-FACING app name: the Android launcher label and the Play listing title.
@@ -24,7 +44,7 @@ module.exports = {
   // name changes.
   name: 'BrainBrew',
   slug: 'brainbrew-app',
-  version: '1.0.0',
+  version: APP_VERSION,
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'dark',
@@ -46,7 +66,7 @@ module.exports = {
     // RevenueCat (Phase 7E). Testing identifier — Founder confirms before launch.
     package: 'com.brainbrew.app',
     // Bumped manually per release (eas.json uses appVersionSource: "local").
-    versionCode: 2,
+    versionCode: VERSION_CODE,
     adaptiveIcon: {
       // Launcher-icon background, not the splash. Left as-is deliberately —
       // it is an icon-design decision, not part of the launch flash.
@@ -83,5 +103,13 @@ module.exports = {
   owner: 'roomly',
   extra: {
     eas: { projectId: '26ed6517-d357-4627-b782-7a3e41f2e3ed' },
+    // Safe build diagnostics for device certification. Nothing here is a secret:
+    // a version, a build number and a commit hash. The RevenueCat MODE is derived
+    // at runtime from the key PREFIX — the key itself never appears.
+    build: {
+      appVersion: APP_VERSION,
+      versionCode: VERSION_CODE,
+      commit: commitSha(),
+    },
   },
 };

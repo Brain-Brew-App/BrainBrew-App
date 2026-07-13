@@ -6,6 +6,7 @@ import { AnimatedMount } from './src/components/AnimatedMount';
 import { DevPackSwitcher } from './src/components/DevPackSwitcher';
 import { StatusView } from './src/components/StatusView';
 import { LaunchIntro } from './src/components/brand/LaunchIntro';
+import { announceBuild } from './src/cloud/buildInfo';
 import { isCloudMode } from './src/cloud/env';
 import { useCloudIdentity } from './src/cloud/useCloudIdentity';
 import { useEntitlements } from './src/cloud/useEntitlements';
@@ -34,6 +35,11 @@ import { colors } from './src/theme/theme';
  * The view is chosen from the session phase; the dev pack switcher appears only
  * in a local development build.
  */
+// Build identity, logged once at module load so it appears before ANY other log —
+// including a crash during the first render. Safe: version, build number, commit,
+// environment, content source and the RevenueCat MODE NAME. No key, no user id.
+announceBuild();
+
 export default function App() {
   const cloud = isCloudMode();
   const [launched, setLaunched] = useState(false);
