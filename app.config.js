@@ -17,7 +17,7 @@
 const { background } = require('./src/theme/palette.json');
 
 const APP_VERSION = '1.0.0';
-const VERSION_CODE = 5;   // RC1.1 perf/correctness. Bump on EVERY build that leaves this machine.
+const VERSION_CODE = 6;   // RC1.1 + preview diagnostics. Bump on EVERY build that leaves this machine.
 
 /**
  * The commit the build was cut from — so a device can be tied to an exact tree

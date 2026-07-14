@@ -11,7 +11,28 @@
  */
 
 declare const __DEV__: boolean | undefined;
+
+/**
+ * Enabled in DEVELOPMENT and in the internal PREVIEW build — never in production.
+ *
+ * A standalone preview APK is the only way to measure what the Founder actually
+ * experiences on the device (a dev client changes the JS engine's conditions), and
+ * `__DEV__` is false there — so these timings were invisible in exactly the build we
+ * need to profile. The preview build is internal-distribution only; a production build
+ * has EXPO_PUBLIC_BUILD_PROFILE=production and stays silent.
+ *
+ * What is logged is unchanged and stays safe: function name, HTTP status, duration,
+ * slot, engine, stable error code. Never a token, a full session id, a player answer,
+ * a correct answer, a user id, or a raw response.
+ */
+// Declared locally: this module is also compiled as a PURE module for the Node test
+// build, which has no Node type definitions. Metro inlines the literal at bundle time.
+declare const process: { env?: Record<string, string | undefined> } | undefined;
+
 const IS_DEV = typeof __DEV__ !== 'undefined' && __DEV__ === true;
+const IS_PREVIEW =
+  typeof process !== 'undefined' && process?.env?.EXPO_PUBLIC_BUILD_PROFILE === 'preview';
+const DIAGNOSTICS_ON = IS_DEV || IS_PREVIEW;
 
 /** Truncate an opaque id to a short, non-identifying tag (e.g. tokens, session ids). */
 export function redactId(value: string | undefined | null): string {
@@ -44,7 +65,7 @@ export function formatCall(d: CallDiagnostic): string {
 
 /** Log a call summary in development only. Never logs tokens/answers/secrets. */
 export function logCall(d: CallDiagnostic): void {
-  if (!IS_DEV) return;
+  if (!DIAGNOSTICS_ON) return;
   // eslint-disable-next-line no-console
   console.log(formatCall(d));
 }
@@ -56,7 +77,7 @@ export function logCall(d: CallDiagnostic): void {
  */
 export type ShareEvent = 'share_requested' | 'share_completed' | 'share_cancelled' | 'share_failed';
 export function logShareEvent(event: ShareEvent): void {
-  if (!IS_DEV) return;
+  if (!DIAGNOSTICS_ON) return;
   // eslint-disable-next-line no-console
   console.log(`[share] ${event}`);
 }
