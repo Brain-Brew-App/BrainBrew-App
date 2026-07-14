@@ -32,6 +32,7 @@ const SOURCES = [
   'src/cloud/answerMap.ts',
   'src/cloud/validate.ts',
   'src/cloud/sessionMachine.ts',
+  'src/cloud/rankedCta.ts',
   'src/cloud/errors.ts',
   'src/cloud/diagnostics.ts',
   'src/cloud/email.ts',

@@ -23,6 +23,18 @@ export type ServiceMode = 'local' | 'cloud';
  * rank, percentile, or competitor data (Phase 6A is not leaderboards).
  */
 export interface RankedTodayStatus {
+  /**
+   * TRUE when the ranked check itself FAILED (network/timeout/server) — we do not
+   * know whether this player may play ranked today.
+   *
+   * This exists because the failure used to be swallowed: the status came back
+   * `undefined`, Home read that as "no ranked available", and offered a plain
+   * "Start Today's Brew" button that quietly started an UNRANKED attempt. The player
+   * believed they were playing their one daily ranked brew and was never told
+   * otherwise. Unknown must be rendered as unknown — never as "not eligible", and
+   * never silently downgraded.
+   */
+  unknown?: boolean;
   /** Whether a NEW ranked attempt can be started right now. */
   eligible: boolean;
   /** Stable server reason code (e.g. 'eligible', 'anonymous_account', 'ranked_attempt_completed'). */

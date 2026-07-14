@@ -20,6 +20,7 @@ const guest = await load('cloud/guestId.js');
 const amap = await load('cloud/answerMap.js');
 const validate = await load('cloud/validate.js');
 const machine = await load('cloud/sessionMachine.js');
+const ctaMod = await load('cloud/rankedCta.js');
 const errors = await load('cloud/errors.js');
 const diag = await load('cloud/diagnostics.js');
 const emailMod = await load('cloud/email.js');
@@ -852,6 +853,26 @@ rmSync(out, { recursive: true, force: true });
   // The archive contract must still refuse anything ranked or pre-scored.
   throws('archive start claiming ranked is still rejected', () => validate.validateArchiveStartResult({ ...base, resumed: false, isRanked: true }));
   throws('archive start carrying a score is still rejected', () => validate.validateArchiveStartResult({ ...base, resumed: false, finalScore: 50 }));
+}
+
+
+// =============================================================================
+// REGRESSION (RC1.1): a FAILED ranked check must never silently become Practice.
+// The status used to come back undefined, Home read that as "no ranked brew", and
+// offered a generic Start button that quietly began an UNRANKED attempt — the
+// player spent their one daily ritual on a brew that never counted.
+// =============================================================================
+{
+  const R = (o) => ctaMod.rankedCta(o);
+  ok('ranked check FAILED -> retry_unknown (never a silent unranked start)', R({ unknown: true, eligible: false, state: 'none' }) === 'retry_unknown');
+  ok('an unknown state does NOT start a ranked attempt', ctaMod.ctaStartsRanked(R({ unknown: true, eligible: false, state: 'none' })) === false);
+  ok('unknown WINS over stale eligible/state values', R({ unknown: true, eligible: true, state: 'active' }) === 'retry_unknown');
+  ok('eligible -> ranked_start', R({ eligible: true, state: 'none' }) === 'ranked_start');
+  ok('active -> ranked_continue', R({ eligible: false, state: 'active' }) === 'ranked_continue');
+  ok('completed -> practice_only', R({ eligible: false, state: 'completed' }) === 'practice_only');
+  ok('KNOWN ineligibility (guest) -> plain_start', R({ eligible: false, state: 'none' }) === 'plain_start');
+  ok('local mode -> plain_start', R(undefined) === 'plain_start');
+  ok('only ranked_start/ranked_continue start a ranked brew', ctaMod.ctaStartsRanked('ranked_start') && ctaMod.ctaStartsRanked('ranked_continue') && !ctaMod.ctaStartsRanked('practice_only') && !ctaMod.ctaStartsRanked('plain_start'));
 }
 
 if (failures.length) {

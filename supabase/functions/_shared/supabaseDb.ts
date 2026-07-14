@@ -140,6 +140,41 @@ export function supabaseDb(sb: SupabaseClient): Db {
       return row;
     },
 
+    /**
+     * The whole of open-puzzle's database work in ONE round trip.
+     *
+     * Measured: the multi-call path spent 400–600 ms of SERVER time per Continue tap,
+     * almost all of it in ~6 separate HTTPS requests to PostgREST (~100 ms each) — not
+     * in Postgres. The RPC performs the identical checks, atomically, and returns the
+     * identical sanitized payload.
+     *
+     * The errors are mapped back to the EXACT AppErrors the old path raised, so every
+     * client-visible failure code is unchanged.
+     */
+    async openSlotOneShot({ userId, attemptId, sessionId, packRef, position }) {
+      const { data, error } = await sb.rpc('open_slot_for_attempt', {
+        p_user: userId, p_attempt: attemptId, p_session: sessionId,
+        p_pack_ref: packRef, p_position: position,
+      });
+      if (error) {
+        const m = error.message ?? '';
+        if (m.includes('attempt_not_found')) throw new AppError('attempt_not_found', 404);
+        if (m.includes('wrong_user')) throw new AppError('invalid_token:wrong_user', 403);
+        if (m.includes('wrong_session')) throw new AppError('invalid_token:wrong_session', 401);
+        if (m.includes('wrong_pack')) throw new AppError('invalid_token:wrong_pack', 401);
+        if (m.includes('attempt_not_active')) throw new AppError('attempt_not_active', 409);
+        if (m.includes('already_submitted')) throw new AppError('already_submitted', 409);
+        if (m.includes('slot_voided')) throw new AppError('slot_voided', 409);
+        if (m.includes('slot_not_found')) throw new AppError('slot_not_found', 404);
+        throw new AppError('db_error', 500, m);
+      }
+      const r = data as {
+        attempt: AttemptRow; slot: SlotRow; public: PublicSlotRow;
+      } | null;
+      if (!r) throw new AppError('slot_not_found', 404);
+      return { attempt: r.attempt, slot: r.slot, public: r.public };
+    },
+
     async getAttempt(attemptId) {
       const { data, error } = await sb
         .from('attempts').select('id, session_id, pack_id, status, user_id, is_ranked, ranked_date, active_denominator, practice_pack_id').eq('id', attemptId).limit(1);

@@ -137,6 +137,15 @@ export interface Db {
   }): Promise<void>;
   submittedItems(attemptId: string): Promise<{ position: number; awarded_score: number; verdict: string }[]>;
   completeAttempt(input: { attemptId: string; finalScore: number }): Promise<void>;
+  /**
+   * OPTIONAL fast path: authorize + resolve + open + return the sanitized slot in a
+   * SINGLE database round trip (`open_slot_for_attempt`). Adapters that do not
+   * implement it (the PGlite simulation) fall back to the original multi-call path,
+   * which is kept intact and still tested.
+   */
+  openSlotOneShot?(input: {
+    userId: string; attemptId: string; sessionId: string; packRef: string; position: number;
+  }): Promise<{ attempt: AttemptRow; slot: SlotRow; public: PublicSlotRow }>;
 }
 
 export interface FlowDeps {
@@ -144,6 +153,8 @@ export interface FlowDeps {
   secret: string;
   /** Server clock in ms. Injected so the timer and token expiry are testable. */
   now: () => number;
+  /** Optional phase timer for the perf audit — durations only, never data. */
+  sw?: { mark(label: string): void };
   attemptTtlSec?: number; // default 2h
   openTtlSec?: number; // default 10m
 }
@@ -359,17 +370,58 @@ export async function openPuzzle(deps: FlowDeps, input: {
   const userId = requireUserId(input.userId);
   const sessionId = requireSession(input.sessionId);
   const position = requirePosition(input.position);
-  const { attempt, slot } = await authorizeSlot(deps, input.attemptToken, userId, sessionId, position, 'attempt');
+  // FAST PATH: one database round trip instead of six.
+  //
+  // The HMAC attempt token is verified FIRST, exactly as before — nothing below runs
+  // for a forged or expired token. The RPC then re-checks ownership, session, pack
+  // binding, active status, void and already-submitted ATOMICALLY, and only then opens
+  // the item. So every guarantee is unchanged; what disappears is five HTTPS hops
+  // between the isolate and PostgREST (~100 ms each, measured).
+  if (deps.db.openSlotOneShot) {
+    if (typeof input.attemptToken !== 'string' || !input.attemptToken) throw new AppError('missing_token', 401);
+    const v = await verifyToken(deps.secret, input.attemptToken, {
+      now: nowSec(deps), typ: 'attempt', uid: userId, sid: sessionId,
+    });
+    if (!v.ok) throw new AppError(`invalid_token:${v.code}`, 401);
+    deps.sw?.mark('verifyToken');
 
-  const existing = await deps.db.getItem(attempt.id, slot.id);
+    const shot = await deps.db.openSlotOneShot({
+      userId, attemptId: v.payload.aid, sessionId, packRef: v.payload.pid, position,
+    });
+    deps.sw?.mark('openSlotOneShot');
+
+    const iat0 = nowSec(deps);
+    const exp0 = iat0 + (deps.openTtlSec ?? DEFAULT_OPEN_TTL);
+    const openToken0 = await signToken(deps.secret, {
+      typ: 'open', aid: shot.attempt.id, uid: userId, sid: sessionId,
+      pid: packRefOf(shot.attempt), slot: shot.slot.id, iat: iat0, exp: exp0, nonce: newNonce(),
+    });
+    deps.sw?.mark('signToken');
+    return { openToken: openToken0, expiresAt: exp0, puzzle: toPublicPuzzle(shot.public) };
+  }
+
+  const { attempt, slot } = await authorizeSlot(deps, input.attemptToken, userId, sessionId, position, 'attempt');
+  deps.sw?.mark('authorizeSlot');
+
+  // The item lookup and the sanitized slot payload are independent — one is keyed by
+  // (attempt, slot), the other by (attempt, position) — but they were awaited in
+  // series, costing an extra round trip on every "Continue" the player taps.
+  // Fetching them together removes it.
+  //
+  // The TIMER is untouched: `opened_at` is still written by openItem BELOW, after the
+  // authorization checks, and re-opening still preserves the ORIGINAL opened_at. This
+  // reads data in parallel; it does not open the puzzle any earlier.
+  const [existing, row] = await Promise.all([
+    deps.db.getItem(attempt.id, slot.id),
+    deps.db.resolveSlotPublic(attempt, position),
+  ]);
+  deps.sw?.mark('getItem+slotPublic');
   if (existing?.status === 'submitted') throw new AppError('already_submitted', 409);
   // Idempotent: re-opening keeps the ORIGINAL opened_at, so the timer can't be
   // reset by re-calling open.
   if (!existing) await deps.db.openItem({ attemptId: attempt.id, slotId: slot.id, position });
+  deps.sw?.mark('openItem');
 
-  // Return the same sanitized shape get-daily-pack serves, for the one slot —
-  // resolved from the daily pack OR the practice pack, whichever this attempt uses.
-  const row = await deps.db.resolveSlotPublic(attempt, position);
   if (!row) throw new AppError('slot_not_found', 404);
 
   const iat = nowSec(deps);
@@ -402,9 +454,17 @@ export async function submitAnswer(deps: FlowDeps, input: {
   const valid = validateSubmission(slot.engine_id, input.submission);
   if (!valid.ok) throw new AppError(`invalid_submission:${valid.error}`, 422);
 
-  const priv = await deps.db.getPuzzlePrivate(slot.puzzle_id);
+  // These two read the SAME puzzle and do not depend on each other, but they were
+  // awaited one after the other — a whole extra network round trip (PostgREST call)
+  // sitting between the player's answer and the reveal, on every submission.
+  // Fetching them together removes it. Nothing else changes: the same rows, the same
+  // checks, the same order of throws, and the answer still never leaves the server.
+  const [priv, publicPayload] = await Promise.all([
+    deps.db.getPuzzlePrivate(slot.puzzle_id),
+    deps.db.getPuzzlePublicPayload(slot.puzzle_id),
+  ]);
   if (!priv) throw new AppError('answer_unavailable', 500);
-  const timing = timingOf(await deps.db.getPuzzlePublicPayload(slot.puzzle_id));
+  const timing = timingOf(publicPayload);
 
   // The single source of truth for elapsed time: server open → server submit.
   const elapsedMs = Math.max(0, deps.now() - Date.parse(item.opened_at));

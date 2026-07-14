@@ -22,6 +22,16 @@ interface SessionScreenProps {
   outcome: { result: CategoryResult; explanation: string } | null;
   /** True while the answer is being scored (freezes the engine, disables Continue). */
   submitting: boolean;
+  /**
+   * True while the NEXT slot is being opened on the server.
+   *
+   * Continue used to stay lit and fully interactive for the whole ~0.4-1s the server
+   * took to open the next puzzle, with the old reveal still on screen — so the tap
+   * looked ignored. (A second tap was never a duplicate request; the in-flight guard
+   * already collapsed it. This was purely a missing acknowledgement.) Disabling it
+   * acknowledges the tap on the very next frame, without faking any progress.
+   */
+  advancing?: boolean;
   onAnswer: (answer: Answer) => void;
   onContinue: () => void;
 }
@@ -40,6 +50,7 @@ export function SessionScreen({
   total,
   outcome,
   submitting,
+  advancing = false,
   onAnswer,
   onContinue,
 }: SessionScreenProps) {
@@ -81,7 +92,7 @@ export function SessionScreen({
           <Button
             label={isLast ? 'See your BrewScore' : 'Continue'}
             onPress={onContinue}
-            disabled={submitting}
+            disabled={submitting || advancing}
           />
         </RevealCard>
       )}

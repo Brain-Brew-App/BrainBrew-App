@@ -5,7 +5,7 @@
  * explanation. The answer key itself never leaves the server.
  */
 
-import { errorResponse, json, methodGuard, readJson } from '../_shared/http.ts';
+import { errorResponse, json, methodGuard, readJson, stopwatch } from '../_shared/http.ts';
 import { requireUser } from '../_shared/auth.ts';
 import { submitAnswer } from '../_shared/gameplay.ts';
 import { attemptSecret, serviceClient, supabaseDb } from '../_shared/supabaseDb.ts';
@@ -13,8 +13,10 @@ import { attemptSecret, serviceClient, supabaseDb } from '../_shared/supabaseDb.
 Deno.serve(async (req) => {
   const guard = methodGuard(req);
   if (guard) return guard;
+  const sw = stopwatch();
   try {
     const user = await requireUser(req);
+    sw.mark('auth');
     const body = await readJson(req);
     const deps = { db: supabaseDb(serviceClient()), secret: attemptSecret(), now: () => Date.now() };
     const result = await submitAnswer(deps, {
@@ -24,7 +26,8 @@ Deno.serve(async (req) => {
       position: body.position,
       submission: body.submission,
     });
-    return json(result);
+    sw.mark('flow');
+    return json(result, 200, sw.header());
   } catch (err) {
     return errorResponse(err);
   }

@@ -18,11 +18,36 @@ export class AppError extends Error {
   }
 }
 
-export function json(body: unknown, status = 200): Response {
+export function json(body: unknown, status = 200, timing?: string): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+    headers: {
+      'Content-Type': 'application/json',
+      ...CORS_HEADERS,
+      // Server-side attribution for the perf audit. DURATIONS ONLY — never an id, a
+      // token, an answer or any payload. Without it, "the server is slow" is a guess:
+      // the client cannot tell its own network latency apart from server work.
+      ...(timing ? { 'x-bb-timing': timing } : {}),
+    },
   });
+}
+
+/** Millisecond stopwatch for server-side phase attribution (durations only). */
+export function stopwatch() {
+  const t0 = performance.now();
+  let last = t0;
+  const marks: string[] = [];
+  return {
+    mark(label: string) {
+      const now = performance.now();
+      marks.push(`${label}=${Math.round(now - last)}`);
+      last = now;
+    },
+    header(): string {
+      marks.push(`total=${Math.round(performance.now() - t0)}`);
+      return marks.join(',');
+    },
+  };
 }
 
 /** Map any thrown value to a client-safe error response with a stable code. */

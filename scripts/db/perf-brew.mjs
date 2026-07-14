@@ -21,7 +21,8 @@ async function timed(label, fn) {
   const out = await fn();
   const ms = Math.round(performance.now() - t0);
   timings.push([label, ms]);
-  console.log(`  ${String(ms).padStart(5)} ms  ${label}`);
+  const srv = out && out.__timing ? `   [server ${out.__timing}]` : '';
+  console.log(`  ${String(ms).padStart(5)} ms  ${label.padEnd(24)}${srv}`);
   return out;
 }
 
@@ -38,6 +39,10 @@ const call = async (fn, body) => {
   });
   const json = await res.json();
   if (!res.ok) throw new Error(`${fn} → ${res.status} ${JSON.stringify(json)}`);
+  // The function reports its OWN durations (no ids/tokens/answers). Without this we
+  // cannot tell server work apart from network latency, and "the server is slow"
+  // stays a guess.
+  json.__timing = res.headers.get('x-bb-timing');
   return json;
 };
 

@@ -206,6 +206,7 @@ export default function App() {
             puzzleCount={status?.puzzleCount ?? 5}
             onStart={actions.start}
             onStartRanked={cloud ? actions.startRanked : undefined}
+            onRetryRanked={cloud ? actions.loadHome : undefined}
             onPractice={cloud ? actions.startPractice : undefined}
             ranked={cloud ? status?.ranked : undefined}
             rankSummary={cloud ? rankSummary : undefined}
@@ -239,6 +240,7 @@ export default function App() {
             total={status?.puzzleCount ?? 5}
             outcome={outcome}
             submitting={phase === 'submitting'}
+            advancing={phase === 'opening_puzzle'}
             onAnswer={actions.submit}
             onContinue={actions.proceed}
           />

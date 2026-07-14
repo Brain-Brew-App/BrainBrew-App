@@ -389,8 +389,13 @@ const otherScore = rdone.finalScore === 50 ? 60 : 50; // in-range and always dis
 await expectThrow('a completed ranked score is final without a recalc bump', 'is final', () =>
   db.query(`update attempts set final_score=$2 where id=$1`, [rstart.attemptId, otherScore]));
 // …and its ranked identity is immutable.
+// A FIXED far-past date, never the value already stored. Using (current_date - 1)
+// made this assertion date-fragile: the sim dates its ranked attempt from a mocked
+// clock, so after a real UTC rollover the 'new' value equalled the old one, the
+// UPDATE became a no-op, nothing was 'distinct from' anything, and the trigger
+// correctly did not fire — so the test failed while the invariant was perfectly fine.
 await expectThrow('ranked identity (date/country) is immutable', 'immutable', () =>
-  db.query(`update attempts set ranked_date=(current_date - 1) where id=$1`, [rstart.attemptId]));
+  db.query(`update attempts set ranked_date=DATE '2020-01-01' where id=$1`, [rstart.attemptId]));
 
 // After ranked completion, replay is available only as UNRANKED practice.
 const practice = await flow.startAttempt(deps, { userId: RUSER, sessionId: RSESSION, appVersion: '1.0.0' });

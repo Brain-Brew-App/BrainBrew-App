@@ -10,12 +10,15 @@ import { Screen } from '../components/Screen';
 import { StreakSummary } from '../components/StreakSummary';
 import type { MyRankSummaryView } from '../cloud/useLeaderboard';
 import type { ProgressSummaryView } from '../cloud/useProgress';
+import { rankedCta } from '../cloud/rankedCta';
 import { STAGGER_MS } from '../theme/motion';
 import { CATEGORY_ACCENTS, colors, MIN_TAP_TARGET, radius, shadow, spacing, typography } from '../theme/theme';
 import { CATEGORY_LABELS, CATEGORY_ORDER } from '../types/puzzle';
 
 /** The player's ranked standing for today, as rendered on Home (cloud only). */
 export interface HomeRankedStatus {
+  /** The ranked CHECK failed — we do not know if ranked is available. Never guess. */
+  unknown?: boolean;
   eligible: boolean;
   state: 'none' | 'active' | 'completed' | 'expired';
   lockedScore: number | null;
@@ -30,6 +33,8 @@ interface HomeScreenProps {
   onStart: () => void;
   /** Cloud mode only: start (or resume) today's ONE ranked brew. */
   onStartRanked?: () => void;
+  /** Re-run the ranked eligibility check after it failed (never guess the state). */
+  onRetryRanked?: () => void;
   /** Cloud mode only: start a fresh unranked Practice Brew (reserve content). */
   onPractice?: () => void;
   /** Cloud mode only: the player's ranked standing for today. */
@@ -59,14 +64,18 @@ function formatDate(iso: string): string {
 }
 
 export function HomeScreen({
-  date, puzzleCount, onStart, onStartRanked, onPractice, ranked, rankSummary, onViewLeaderboards,
+  date, puzzleCount, onStart, onStartRanked, onRetryRanked, onPractice, ranked, rankSummary, onViewLeaderboards,
   progressSummary, onViewProgress, devTools, username, onOpenProfile,
 }: HomeScreenProps) {
   const practice = onPractice ?? onStart;
   // The ranked affordance only exists in cloud mode (where `ranked` is provided).
-  const canPlayRanked = Boolean(onStartRanked && ranked && ranked.eligible);
-  const rankedActive = ranked?.state === 'active';
-  const rankedDone = ranked?.state === 'completed';
+  // `unknown` means the ranked check FAILED. It is not "not eligible" — treating it
+  // that way is what silently downgraded a ranked brew to Practice.
+  const cta = rankedCta(ranked);
+  const rankedUnknown = cta === 'retry_unknown';
+  const canPlayRanked = Boolean(onStartRanked) && cta === 'ranked_start';
+  const rankedActive = cta === 'ranked_continue';
+  const rankedDone = cta === 'practice_only';
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -122,7 +131,7 @@ export function HomeScreen({
             <View style={[styles.rankedCard, rankedDone && styles.rankedCardDone]}>
               <View style={styles.rankedHead}>
                 <Text style={styles.rankedEyebrow}>
-                  {rankedDone ? "TODAY'S RANKED BREW" : rankedActive ? 'RANKED · IN PROGRESS' : 'RANKED'}
+                  {rankedUnknown ? 'RANKED · UNAVAILABLE' : rankedDone ? "TODAY'S RANKED BREW" : rankedActive ? 'RANKED · IN PROGRESS' : 'RANKED'}
                 </Text>
                 {rankedDone && ranked.lockedScore != null && (
                   <Text style={styles.rankedScore}>{ranked.lockedScore}<Text style={styles.rankedScoreMax}> / 100</Text></Text>
@@ -163,6 +172,16 @@ export function HomeScreen({
               </>
             ) : rankedDone ? (
               <Button label="Practice Brew" onPress={practice} />
+            ) : rankedUnknown ? (
+              // The ranked check failed. Offer a RETRY, and label the fallback for
+              // what it actually is. Never present an unranked attempt as "Today's
+              // Brew" when the player is trying to play their one ranked brew.
+              <>
+                {onRetryRanked && <Button label="Try again" onPress={onRetryRanked} />}
+                {ranked?.practiceAvailable && (
+                  <Button label="Practice Brew (unranked)" variant="secondary" onPress={practice} />
+                )}
+              </>
             ) : (
               <Button label="Start Today's Brew" onPress={onStart} />
             )}
