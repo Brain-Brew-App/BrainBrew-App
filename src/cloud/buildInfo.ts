@@ -40,9 +40,24 @@ export interface BuildInfo {
   appVersion: string;
   versionCode: number | string;
   commit: string;
-  environment: 'development' | 'production';
+  /** development | preview | production — the BUILD PROFILE, not just __DEV__. */
+  environment: string;
   contentSource: 'local' | 'cloud';
   storeMode: string;
+}
+
+/**
+ * The build profile.
+ *
+ * `__DEV__` alone cannot tell a PREVIEW (internal, release-mode, Metro-free) build
+ * apart from a PRODUCTION one — both are `__DEV__ === false`. A Founder holding an
+ * APK must be able to see which of the two they are holding, so the profile is
+ * supplied explicitly by the EAS environment and only falls back to __DEV__.
+ */
+function environment(): string {
+  const fromEas = process.env.EXPO_PUBLIC_BUILD_PROFILE;
+  if (fromEas) return fromEas;                      // development | preview | production
+  return typeof __DEV__ !== 'undefined' && __DEV__ ? 'development' : 'production';
 }
 
 export function buildInfo(): BuildInfo {
@@ -51,7 +66,7 @@ export function buildInfo(): BuildInfo {
     appVersion: extra.build?.appVersion ?? extra.version ?? 'unknown',
     versionCode: extra.build?.versionCode ?? 'unknown',
     commit: extra.build?.commit ?? 'unknown',
-    environment: typeof __DEV__ !== 'undefined' && __DEV__ ? 'development' : 'production',
+    environment: environment(),
     contentSource: activeMode(),
     storeMode: currentStoreMode(),
   };
