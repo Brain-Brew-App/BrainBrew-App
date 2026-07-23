@@ -116,7 +116,8 @@
     "rc1:promote": "node scripts/db/with-secrets.mjs node scripts/db/rc1-promote.mjs",
     "admin:set-password": "node scripts/db/with-secrets.mjs node scripts/db/admin-set-password.mjs",
     "perf:brew": "node scripts/db/with-secrets.mjs node scripts/db/perf-brew.mjs",
-    "test:edge-auth": "node scripts/db/with-secrets.mjs node scripts/db/edge-auth-security-test.mjs"
+    "test:edge-auth": "node scripts/db/with-secrets.mjs node scripts/db/edge-auth-security-test.mjs",
+    "db:pack-schedule-test": "node scripts/db/pack-schedule-test.mjs"
   },
   "private": true
 }

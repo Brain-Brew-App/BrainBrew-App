@@ -40,11 +40,12 @@ if (SECRET && SECRET.startsWith('sb_publishable_')) {
 }
 const dryRun = !SECRET;
 
+import { dateSequence as planDates, planSchedule } from './pack-schedule-plan.mjs';
+
+const todayIso = new Date().toISOString().slice(0, 10);
 /** Consecutive UTC dates starting today (or --start), one per pack. */
 function dateSequence(startIso, n) {
-  const base = startIso ? new Date(`${startIso}T00:00:00Z`) : new Date();
-  const day0 = Date.UTC(base.getUTCFullYear(), base.getUTCMonth(), base.getUTCDate());
-  return Array.from({ length: n }, (_, i) => new Date(day0 + i * 86400000).toISOString().slice(0, 10));
+  return planDates(startIso, n, todayIso);
 }
 
 console.log(`\nBrainBrew pack publish — ${dryRun ? 'DRY RUN (no connection)' : 'LIVE'}`);
@@ -65,41 +66,59 @@ if (!URL) {
 
 const db = createClient(URL, SECRET, { auth: { persistSession: false } });
 
-// Choose the packs to publish: approved packs, in stable pack_index order.
-// Packs already live keep their date (publish_pack is a no-op for them).
-const { data: packs, error: listErr } = await db
+// DATE-DRIVEN, not pack-driven. The old logic selected the first N packs by
+// pack_index and re-confirmed any that were already live — but a live pack is pinned
+// to its (possibly PAST) date and cannot move, so once the window expired the script
+// just re-published yesterday forever and never covered today. It reported success
+// while today's brew stayed unavailable.
+//
+// The correct question is per DATE: "does this date already have a live pack? if not,
+// put the next approved pack on it." Dates already covered are left exactly as they
+// are (live packs are immutable — you must never rewrite a day people played).
+
+const wantDates = dateSequence(startArg, count);
+
+// What is already live on the dates we care about (immutable — never moved).
+const { data: liveOnDates, error: liveErr } = await db
   .from('daily_packs')
-  .select('pack_id, pack_index, status, pack_date')
-  .in('status', ['approved', 'live'])
+  .select('pack_date')
+  .eq('status', 'live')
+  .in('pack_date', wantDates);
+if (liveErr) { console.error(`Could not read live packs — ${liveErr.message}`); process.exit(1); }
+const liveDates = (liveOnDates ?? []).map((p) => p.pack_date);
+
+// Approved, unscheduled inventory in stable order (fetch generously; the planner
+// only consumes as many as there are open dates).
+const { data: approved, error: apprErr } = await db
+  .from('daily_packs')
+  .select('pack_id, pack_index')
+  .eq('status', 'approved')
   .order('pack_index', { ascending: true })
   .limit(count);
-if (listErr) {
-  console.error(`Could not list packs — ${listErr.message}`);
+if (apprErr) { console.error(`Could not list approved packs — ${apprErr.message}`); process.exit(1); }
+
+const plan = planSchedule(wantDates, liveDates, (approved ?? []).map((p) => p.pack_id));
+
+if (plan.needDates.length === 0) {
+  console.log(`All ${wantDates.length} dates already have a live pack (${wantDates[0]} … ${wantDates[wantDates.length - 1]}).`);
+  process.exit(0);
+}
+if (plan.assignments.length === 0) {
+  console.error('No approved packs available to schedule. Run `npm run supabase:import-content` first.');
   process.exit(1);
 }
-if (!packs || packs.length === 0) {
-  console.error('No approved packs found. Run `npm run supabase:import-content` first.');
-  process.exit(1);
+if (plan.shortfall > 0) {
+  console.warn(`⚠ ${plan.shortfall} open date(s) have no approved pack to cover them — import more content.`);
 }
 
-const dates = dateSequence(startArg, packs.length);
 let ok = 0;
 let failed = 0;
-
-for (let i = 0; i < packs.length; i++) {
-  const pack = packs[i];
-  // A pack already live keeps the date it owns; otherwise take the next open date.
-  const target = pack.pack_date ?? dates[i];
-  const { error } = await db.rpc('publish_pack', { p_pack_id: pack.pack_id, p_date: target });
-  if (error) {
-    failed++;
-    console.error(`  ✕ ${pack.pack_id} → ${target}: ${error.message}`);
-  } else {
-    ok++;
-    console.log(`  ✓ ${pack.pack_id} → ${target}`);
-  }
+for (const { packId, date } of plan.assignments) {
+  const { error } = await db.rpc('publish_pack', { p_pack_id: packId, p_date: date });
+  if (error) { failed++; console.error(`  ✕ ${packId} → ${date}: ${error.message}`); }
+  else { ok++; console.log(`  ✓ ${packId} → ${date}`); }
 }
 
-console.log(`\n${ok} published/confirmed, ${failed} failed.`);
+console.log(`\n${plan.covered.length} already covered, ${ok} newly published, ${failed} failed.`);
 console.log(failed ? '' : '✓ Live daily content is set. Verify with `npm run supabase:parity`.\n');
 process.exit(failed ? 1 : 0);
